@@ -96,6 +96,8 @@ class CPU6502 {
   }
 }
 
+// Symbols for each Addressing Mode
+CPU6502.accumulator = Symbol('Accumulator Mode');
 CPU6502.immediate = Symbol('Immediate Mode');
 CPU6502.zeroPage = Symbol('Zero Page Mode');
 CPU6502.zeroPageX = Symbol('Zero Page X Mode');
