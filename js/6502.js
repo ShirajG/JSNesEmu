@@ -4,7 +4,7 @@ class CPU6502 {
   X = 0; // X Register
   Y = 0; // Y Register
   P = 0x34; // Processor Status Flags
-  PC = null; // Program Counter
+  PC = 0; // Program Counter, This is a 16 bit value for addressing 65K of memory
   S = 0xFD; // Stack Pointer, actually an offset to the address 0x0100 (Page 1, offset 0). 6502 uses an 'empty stack' convention, meaning that the pointer always points an empty location in the stack. The value is decremented after data is pushed, and incremented before data is popped.
 
   constructor (memory) {
@@ -22,6 +22,17 @@ class CPU6502 {
     });
   }
 
+  stackPushPC () {
+    // This is a 2 part operation that always happens together.
+    // We need to push 2 8bit values to the stack so they can be
+    // rejoined later into a 16bit val
+
+    // Push the Hi Byte of PC
+    this.stackPush((this.PC & 0b1111111100000000) >> 8);
+    // Push Lo Byte
+    this.stackPush((this.PC & 0b0000000011111111));
+  }
+
   read16Bits(startingAt) {
     // NES is little endian, so we need to keep that in mind when pulling in a 16 bit value
     var loByte = this.memory[startingAt];
@@ -36,12 +47,67 @@ class CPU6502 {
     this.memory[startingAt + 1] = hiByte;
   }
 
+  clearFlag(flag) {
+    switch (flag) {
+      case CPU6502.zero:
+        this.P = (this.P & 0b11111101);
+        break;
+      case CPU6502.overflow:
+        // Turn off the carry flag
+        this.P = (this.P & 0b10111111 )
+        break;
+      case CPU6502.interruptDisable:
+        // Turn off the carry flag
+        this.P = (this.P & 0b11111011 )
+        break;
+      case CPU6502.carry:
+        // Turn off the carry flag
+        this.P = (this.P & 0b11111110 )
+        break;
+      case CPU6502.decimal:
+        // Turn off the decimal mode flag
+        this.P = (this.P & 0b11110111 )
+        break;
+      default:
+        return;
+    }
+  }
+
   setFlag(flag) {
     switch (flag) {
+      case CPU6502.carry:
+        this.P = (this.P | 1)
+        break;
+      case CPU6502.zero:
+        this.P = (this.P | (1 << 1));
+        break;
       case CPU6502.break:
-        // Sets the  break flag to on
         this.P = (this.P | (1 << 4))
         break;
+      case CPU6502.negative:
+        this.P = (this.P | (1 << 7));
+        break;
+      default:
+        return;
+    }
+  }
+
+  flagIsSet(flag) {
+    switch (flag) {
+      case CPU6502.carry:
+        return (this.P & 0b00000001) == 1;
+      case CPU6502.zero:
+        return (this.P & 0b00000010) == 2;
+      case CPU6502.interruptDisable:
+        return (this.P & 0b00000100) == 4;
+      case CPU6502.decimal:
+        return (this.P & 0b00001000) == 8;
+      case CPU6502.break:
+        return (this.P & 0b00010000) == 16;
+      case CPU6502.overflow:
+        return (this.P & 0b01000000) == 64;
+      case CPU6502.negative:
+        return (this.P & 0b10000000) == 128;
       default:
         return;
     }
@@ -62,10 +128,91 @@ class CPU6502 {
      * The program counter and processor status are pushed on the stack then the
      * IRQ interrupt vector at $FFFE/F is loaded into the PC and the break
      * flag in the status set to one. */
-    this.stackPush(this.PC);
+    this.PC += 2;
+    this.stackPushPC();
+    this.setFlag(CPU6502.break);
     this.stackPush(this.P);
     this.PC = this.read16Bits(this.interruptVector);
-    this.setFlag(CPU6502.break);
+    return 7; // This instruction takes 7 cycles
+  }
+
+  clc () {
+    // Clear Carry Flag
+    this.PC++;
+    this.clearFlag(CPU6502.carry);
+    return 2; // Takes 2 cycles
+  }
+
+  cld () {
+    // Clear Decimal Mode Flag
+    this.PC++;
+    this.clearFlag(CPU6502.decimal);
+    return 2; // Takes 2 cycles
+  }
+
+  cli () {
+    // Clear Interrupt Flag
+    this.PC++;
+    this.clearFlag(CPU6502.interruptDisable);
+    return 2; // Takes 2 cycles
+  }
+
+  clv () {
+    // Clear Overflow Flag
+    this.PC++;
+    this.clearFlag(CPU6502.overflow);
+    return 2; // Takes 2 cycles
+  }
+
+  dex () {
+    // Decrement X register
+    this.PC++;
+    this.X--;
+    if (this.X == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+    if (this.X & 0b10000000) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+    return 2;
+  }
+
+  dey () {
+    // Decrement Y register
+    this.PC++;
+    this.Y--;
+    if (this.Y == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+    if (this.Y & 0b10000000) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+    return 2;
+  }
+
+  inx () {
+    // Increment X register
+    this.PC++;
+    this.X++;
+    if (this.X == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+    if (this.X & 0b10000000) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+    return 2;
   }
 
   reset () {
@@ -143,63 +290,3 @@ CPU6502.absoluteX = Symbol('Absolute X Mode');
 CPU6502.absoluteY = Symbol('Absolute Y Mode');
 CPU6502.indirectX = Symbol('Indirect X Mode');
 CPU6502.indirect_Y = Symbol('(Indirect), Y Mode');
-
-// Tests
-function assertEqual (expected, actual) {
-  if (expected !== actual) {
-    throw `Expected does not equal Actual, expected ${expected}, got ${actual}.`;
-  }
-};
-
-function testStackOperations (cpu) {
-  cpu.stackPush(1);
-  cpu.stackPush(2);
-  cpu.stackPush(3);
-  cpu.stackPush(4);
-  cpu.printStack();
-  assertEqual(4, cpu.stackPop())
-  assertEqual(3, cpu.stackPop())
-  assertEqual(2, cpu.stackPop())
-  assertEqual(1, cpu.stackPop())
-};
-
-function testReading16Bits(cpu) {
-  cpu.memory[10] = 0b11110000;
-  cpu.memory[11] = 0b11110000;
-  assertEqual(0b1111000011110000, cpu.read16Bits(10));
-  cpu.memory[12] = 0b10110101;
-  cpu.memory[13] = 0b11100001;
-  assertEqual(0b1110000110110101, cpu.read16Bits(12));
-}
-
-function testWriting16Bits(cpu) {
-  cpu.write16Bits(0xFE, 0b1111000010101010);
-  assertEqual(0b11110000, cpu.memory[0xFF])
-  assertEqual(0b10101010, cpu.memory[0xFE])
-}
-
-function testBRKop(cpu) {
-  var testVal = 0b1010101000001111
-  assertEqual(null, cpu.PC);
-  cpu.write16Bits(cpu.interruptVector, testVal);
-  cpu.brk();
-  assertEqual(testVal, cpu.PC);
-  assertEqual(0x34, cpu.stackPop());
-  assertEqual(0b10000, cpu.getFlag(CPU6502.break));
-}
-
-var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
-testStackOperations(cpu);
-cpu.reset();
-testReading16Bits(cpu);
-cpu.reset();
-testWriting16Bits(cpu);
-testBRKop(cpu);
-cpu.reset();
-
-// If we get here none of the tests failed...
-(function(){
-  var graf = document.createElement('p');
-  graf.innerText = "All Tests passed";
-  document.body.appendChild(graf);
-})()
