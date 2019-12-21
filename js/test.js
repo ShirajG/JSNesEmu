@@ -171,6 +171,26 @@ function testPHPop(cpu) {
   assertEqual(cpu.P, cpu.stackPeek());
 }
 
+function testPLAop(cpu) {
+  cpu.stackPush(64);
+  cpu.pla();
+  assertEqual(64, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+
+  cpu.stackPush(0);
+  cpu.pla();
+  assertEqual(0, cpu.A);
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+
+  cpu.stackPush(255);
+  cpu.pla();
+  assertEqual(255, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -200,6 +220,8 @@ cpu.reset();
 testPHAop(cpu);
 cpu.reset();
 testPHPop(cpu);
+cpu.reset();
+testPLAop(cpu);
 
 // If we get here none of the tests failed...
 (function(){

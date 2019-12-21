@@ -213,7 +213,7 @@ class CPU6502 {
     } else {
       this.clearFlag(CPU6502.zero);
     }
-    if (this.X & 0b10000000) {
+    if (this.isNegative(this.X)) {
       this.setFlag(CPU6502.negative);
     } else {
       this.clearFlag(CPU6502.negative);
@@ -230,7 +230,7 @@ class CPU6502 {
     } else {
       this.clearFlag(CPU6502.zero);
     }
-    if (this.Y & 0b10000000) {
+    if (this.isNegative(this.Y)) {
       this.setFlag(CPU6502.negative);
     } else {
       this.clearFlag(CPU6502.negative);
@@ -247,7 +247,7 @@ class CPU6502 {
     } else {
       this.clearFlag(CPU6502.zero);
     }
-    if (this.X & 0b10000000) {
+    if (this.isNegative(this.X)) {
       this.setFlag(CPU6502.negative);
     } else {
       this.clearFlag(CPU6502.negative);
@@ -264,7 +264,7 @@ class CPU6502 {
     } else {
       this.clearFlag(CPU6502.zero);
     }
-    if (this.Y & 0b10000000) {
+    if (this.isNegative(this.Y)) {
       this.setFlag(CPU6502.negative);
     } else {
       this.clearFlag(CPU6502.negative);
@@ -286,10 +286,33 @@ class CPU6502 {
   }
 
   php () {
-    // Push Accumulator to Stack
+    // Push Status to Stack
     this.PC++;
     this.stackPush(this.P);
     return 3;
+  }
+
+  pla () {
+    // Pop from Stack to register A
+    this.PC++;
+    this.A = this.stackPop();
+
+    if (this.A == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+    if (this.isNegative(this.A)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    return 4;
+  }
+
+  isNegative (val) {
+    return val & 0b10000000;
   }
 
   reset () {
