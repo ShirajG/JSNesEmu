@@ -285,6 +285,13 @@ class CPU6502 {
     return 3;
   }
 
+  php () {
+    // Push Accumulator to Stack
+    this.PC++;
+    this.stackPush(this.P);
+    return 3;
+  }
+
   reset () {
     this.A = 0;
     this.X = 0;

@@ -166,6 +166,11 @@ function testPHAop(cpu) {
   assertEqual(128, cpu.stackPeek());
 }
 
+function testPHPop(cpu) {
+  cpu.php();
+  assertEqual(cpu.P, cpu.stackPeek());
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -193,6 +198,8 @@ cpu.reset();
 testNOPop(cpu);
 cpu.reset();
 testPHAop(cpu);
+cpu.reset();
+testPHPop(cpu);
 
 // If we get here none of the tests failed...
 (function(){
