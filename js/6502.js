@@ -1,14 +1,51 @@
 class CPU6502 {
   interruptVector = 0xFFFE; // 0xFFFE and 0xFFFF will store a 16 bit address to jump to on interrupt
-  A = 0; // Accumulator Register
-  X = 0; // X Register
-  Y = 0; // Y Register
-  P = 0x34; // Processor Status Flags
-  PC = 0; // Program Counter, This is a 16 bit value for addressing 65K of memory
-  S = 0xFD; // Stack Pointer, actually an offset to the address 0x0100 (Page 1, offset 0). 6502 uses an 'empty stack' convention, meaning that the pointer always points an empty location in the stack. The value is decremented after data is pushed, and incremented before data is popped.
+  registers = new Uint8Array(new ArrayBuffer(5));
+  PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
+
+  set A(val) {
+    this.registers[0] = val;
+  };
+
+  get A() {
+    return this.registers[0];
+  };
+
+  set X(val) {
+    this.registers[1] = val;
+  };
+
+  get X() {
+    return this.registers[1];
+  };
+
+  set Y(val) {
+    this.registers[2] = val;
+  }
+
+  get Y() {
+    return this.registers[2];
+  }
+
+  set P(val) {
+    this.registers[3] = val;
+  }
+
+  get P() {
+    return this.registers[3];
+  }
+
+  set S(val) {
+    this.registers[4] = val;
+  }
+
+  get S() {
+    return this.registers[4];
+  }
 
   constructor (memory) {
     this.memory = memory;
+    this.reset();
   }
 
   printRegisters() {
@@ -49,6 +86,9 @@ class CPU6502 {
 
   clearFlag(flag) {
     switch (flag) {
+      case CPU6502.negative:
+        this.P = (this.P & 0b01111111);
+        break;
       case CPU6502.zero:
         this.P = (this.P & 0b11111101);
         break;
