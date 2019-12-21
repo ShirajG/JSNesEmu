@@ -10,7 +10,7 @@ function testStackOperations (cpu) {
   cpu.stackPush(2);
   cpu.stackPush(3);
   cpu.stackPush(4);
-  cpu.printStack();
+  // cpu.printStack();
   assertEqual(4, cpu.stackPop())
   assertEqual(3, cpu.stackPop())
   assertEqual(2, cpu.stackPop())
@@ -37,7 +37,7 @@ function testBRKop(cpu) {
   assertEqual(null, cpu.PC);
   cpu.write16Bits(cpu.interruptVector, testVal);
   cpu.brk();
-  cpu.printRegisters()
+  // cpu.printRegisters()
   assertEqual(testVal, cpu.PC);
   assertEqual(0x34, cpu.stackPop());
   assertEqual(true, cpu.flagIsSet(CPU6502.break));
@@ -75,31 +75,45 @@ function testCLVop(cpu) {
 }
 
 function testDEXop(cpu) {
-  throw('This needs to use an 8bit register');
   cpu.X = 255;
   cpu.dex();
   assertEqual(254, cpu.X);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  cpu.X = 64;
+  cpu.dex();
+  assertEqual(63, cpu.X);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
   cpu.X = 1;
   cpu.dex();
   assertEqual(0, cpu.X);
   assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
   cpu.dex();
-  assertEqual(-1, cpu.X);
+  assertEqual(255, cpu.X);
   assertEqual(false, cpu.flagIsSet(CPU6502.zero))
   assertEqual(true, cpu.flagIsSet(CPU6502.negative))
 }
 
 function testDEYop(cpu) {
-  throw('This needs to use an 8bit register');
   cpu.Y = 255;
   cpu.dey();
   assertEqual(254, cpu.Y);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  cpu.Y = 64;
+  cpu.dey();
+  assertEqual(63, cpu.Y);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
   cpu.Y = 1;
   cpu.dey();
   assertEqual(0, cpu.Y);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
   assertEqual(true, cpu.flagIsSet(CPU6502.zero))
   cpu.dey();
-  assertEqual(-1, cpu.Y);
+  assertEqual(255, cpu.Y);
   assertEqual(false, cpu.flagIsSet(CPU6502.zero))
   assertEqual(true, cpu.flagIsSet(CPU6502.negative))
 }
@@ -109,17 +123,19 @@ function testINXop(cpu) {
   cpu.inx();
   assertEqual(255, cpu.X);
   assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
   cpu.X = 255;
   cpu.inx();
-  assertEqual(0, cpu.X); // Fails because these values aren't 8-bits
-  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
-  cpu.X = -1;
-  cpu.inx();
   assertEqual(0, cpu.X);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
   assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+  cpu.X = 64;
+  cpu.inx();
+  assertEqual(65, cpu.X);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
 }
 
-throw("CPU Registers need to be clamped to 8 bits");
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -141,6 +157,7 @@ cpu.reset();
 testDEYop(cpu);
 cpu.reset();
 testINXop(cpu);
+cpu.reset();
 
 // If we get here none of the tests failed...
 (function(){
