@@ -255,6 +255,36 @@ class CPU6502 {
     return 2;
   }
 
+  iny () {
+    // Increment Y register
+    this.PC++;
+    this.Y++;
+    if (this.Y == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+    if (this.Y & 0b10000000) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+    return 2;
+  }
+
+  nop () {
+    // No Operation
+    this.PC++;
+    return 2;
+  }
+
+  pha () {
+    // Push Accumulator to Stack
+    this.PC++;
+    this.stackPush(this.A);
+    return 3;
+  }
+
   reset () {
     this.A = 0;
     this.X = 0;

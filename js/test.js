@@ -136,6 +136,36 @@ function testINXop(cpu) {
   assertEqual(false, cpu.flagIsSet(CPU6502.negative));
 }
 
+function testINYop(cpu) {
+  cpu.Y = 254;
+  cpu.iny();
+  assertEqual(255, cpu.Y);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  cpu.Y = 255;
+  cpu.iny();
+  assertEqual(0, cpu.Y);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+  cpu.Y = 64;
+  cpu.iny();
+  assertEqual(65, cpu.Y);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+}
+
+function testNOPop(cpu) {
+  var oldPC = cpu.PC;
+  cpu.nop();
+  assertEqual(oldPC + 1, cpu.PC);
+}
+
+function testPHAop(cpu) {
+  cpu.A = 128;
+  cpu.pha();
+  assertEqual(128, cpu.stackPeek());
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -158,6 +188,11 @@ testDEYop(cpu);
 cpu.reset();
 testINXop(cpu);
 cpu.reset();
+testINYop(cpu);
+cpu.reset();
+testNOPop(cpu);
+cpu.reset();
+testPHAop(cpu);
 
 // If we get here none of the tests failed...
 (function(){
