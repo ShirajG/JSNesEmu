@@ -197,6 +197,16 @@ function testPLPop(cpu) {
   assertEqual(255, cpu.P);
 }
 
+function testRTIop(cpu) {
+  cpu.PC = 0b1111111101010101;
+  cpu.stackPushPC();
+  cpu.stackPush(0b01010101);
+  cpu.rti();
+  cpu.printRegisters()
+  assertEqual(0b01010101, cpu.P);
+  assertEqual(0b1111111101010101, cpu.PC);
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -230,10 +240,13 @@ cpu.reset();
 testPLAop(cpu);
 cpu.reset();
 testPLPop(cpu);
+cpu.reset();
+testRTIop(cpu);
 
 // If we get here none of the tests failed...
 (function(){
   var graf = document.createElement('p');
+  graf.classList += " success";
   graf.innerText = "All Tests passed";
   document.body.appendChild(graf);
 })()

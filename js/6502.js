@@ -70,6 +70,18 @@ class CPU6502 {
     this.stackPush((this.PC & 0b0000000011111111));
   }
 
+  stackPopPC () {
+    // This is a 2 part operation that always happens together.
+    // We need to pop 2 8bit values from the stack so they can be
+    // rejoined later into a 16bit val
+
+    // Push the Hi Byte of PC
+    var loByte = this.stackPop();
+    // Push Lo Byte
+    var hiByte = this.stackPop();
+    return ((hiByte << 8 ) | loByte);
+  }
+
   read16Bits(startingAt) {
     // NES is little endian, so we need to keep that in mind when pulling in a 16 bit value
     var loByte = this.memory[startingAt];
@@ -315,6 +327,13 @@ class CPU6502 {
     // Pull Status from Stack
     this.P = this.stackPop();
     return 4;
+  }
+
+  rti () {
+    // Return from Interrupt
+    this.P = this.stackPop();
+    this.PC = this.stackPopPC();
+    return 6;
   }
 
   isNegative (val) {
