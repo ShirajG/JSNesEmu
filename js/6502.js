@@ -311,6 +311,12 @@ class CPU6502 {
     return 4;
   }
 
+  plp () {
+    // Pull Status from Stack
+    this.P = this.stackPop();
+    return 4;
+  }
+
   isNegative (val) {
     return val & 0b10000000;
   }

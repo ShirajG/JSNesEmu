@@ -191,6 +191,12 @@ function testPLAop(cpu) {
   assertEqual(true, cpu.flagIsSet(CPU6502.negative));
 }
 
+function testPLPop(cpu) {
+  cpu.stackPush(255);
+  cpu.plp();
+  assertEqual(255, cpu.P);
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -222,6 +228,8 @@ cpu.reset();
 testPHPop(cpu);
 cpu.reset();
 testPLAop(cpu);
+cpu.reset();
+testPLPop(cpu);
 
 // If we get here none of the tests failed...
 (function(){
