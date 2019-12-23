@@ -207,6 +207,109 @@ function testRTIop(cpu) {
   assertEqual(0b1111111101010101, cpu.PC);
 }
 
+function testRTSop(cpu) {
+  cpu.PC = 0b1010101011111110;
+  cpu.stackPushPC();
+  cpu.PC = 0;
+  cpu.rts();
+  assertEqual(0b1010101011111111, cpu.PC);
+}
+
+function testSECop(cpu) {
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  cpu.sec();
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+}
+
+function testSEDop(cpu) {
+  assertEqual(false, cpu.flagIsSet(CPU6502.decimal));
+  cpu.sed();
+  assertEqual(true, cpu.flagIsSet(CPU6502.decimal));
+}
+
+function testSEIop(cpu) {
+  cpu.P = 0;
+  assertEqual(false, cpu.flagIsSet(CPU6502.interruptDisable));
+  cpu.sei();
+  assertEqual(true, cpu.flagIsSet(CPU6502.interruptDisable));
+}
+
+function testTAXop(cpu) {
+  cpu.A = 255;
+  cpu.tax();
+  assertEqual(255, cpu.X);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+
+  cpu.A = 0;
+  cpu.tax();
+  assertEqual(0, cpu.X);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+}
+
+function testTAYop(cpu) {
+  cpu.A = 255;
+  cpu.tay();
+  assertEqual(255, cpu.Y);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+
+  cpu.A = 0;
+  cpu.tay();
+  assertEqual(0, cpu.Y);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+}
+
+function testTSXop(cpu) {
+  cpu.S = 255;
+  cpu.tsx();
+  assertEqual(255, cpu.X);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+
+  cpu.S = 0;
+  cpu.tsx();
+  assertEqual(0, cpu.X);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+}
+
+function testTXAop(cpu) {
+  cpu.X = 255;
+  cpu.txa();
+  assertEqual(255, cpu.A);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+
+  cpu.X = 0;
+  cpu.txa();
+  assertEqual(0, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+}
+
+function testTXSop(cpu) {
+  cpu.X = 255;
+  cpu.txs();
+  assertEqual(255, cpu.S);
+}
+
+function testTYAop(cpu) {
+  cpu.Y = 255;
+  cpu.tya();
+  assertEqual(255, cpu.A);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+
+  cpu.Y = 0;
+  cpu.tya();
+  assertEqual(0, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -242,6 +345,30 @@ cpu.reset();
 testPLPop(cpu);
 cpu.reset();
 testRTIop(cpu);
+cpu.reset();
+testRTSop(cpu)
+cpu.reset();
+testSECop(cpu);
+cpu.reset();
+testSEDop(cpu);
+cpu.reset();
+testSEIop(cpu);
+cpu.reset();
+testTAXop(cpu);
+cpu.reset();
+testTAYop(cpu);
+cpu.reset();
+testTSXop(cpu);
+cpu.reset();
+testTXAop(cpu);
+cpu.reset();
+testTXAop(cpu);
+cpu.reset();
+testTXSop(cpu);
+cpu.reset();
+testTYAop(cpu);
+cpu.reset();
+
 
 // If we get here none of the tests failed...
 (function(){

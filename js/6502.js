@@ -133,8 +133,17 @@ class CPU6502 {
       case CPU6502.zero:
         this.P = (this.P | (1 << 1));
         break;
+      case CPU6502.interruptDisable:
+        this.P = (this.P | (1 << 2));
+        break;
+      case CPU6502.decimal:
+        this.P = (this.P | (1 <<3));
+        break;
       case CPU6502.break:
         this.P = (this.P | (1 << 4))
+        break;
+      case CPU6502.overflow:
+        this.P = (this.P | (1 << 6));
         break;
       case CPU6502.negative:
         this.P = (this.P | (1 << 7));
@@ -325,6 +334,7 @@ class CPU6502 {
 
   plp () {
     // Pull Status from Stack
+    this.PC++;
     this.P = this.stackPop();
     return 4;
   }
@@ -334,6 +344,136 @@ class CPU6502 {
     this.P = this.stackPop();
     this.PC = this.stackPopPC();
     return 6;
+  }
+
+  rts () {
+    //Return from subroutine
+    this.PC = this.stackPopPC();
+    this.PC++;
+    return 6;
+  }
+
+  sec () {
+    // Set Carry flag
+    this.PC++;
+    this.setFlag(CPU6502.carry);
+    return 2;
+  }
+
+  sed () {
+    // Set Decimal Flag
+    this.PC++;
+    this.setFlag(CPU6502.decimal);
+    return 2;
+  }
+
+  sei () {
+    // Set Interrupt Disable Flag
+    this.PC++;
+    this.setFlag(CPU6502.interruptDisable);
+    return 2;
+  }
+
+  tax () {
+    // Transfer Accumulator to X
+    this.PC++;
+    this.X = this.A;
+    if(this.isNegative(this.X)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.X == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    return 2;
+  }
+
+  tay () {
+    // Transfer Accumulator to Y
+    this.PC++;
+    this.Y = this.A;
+    if(this.isNegative(this.Y)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.Y == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    return 2;
+  }
+
+  tsx () {
+    // Transfer Stack Pointer to X
+    this.PC++;
+    this.X = this.S;
+    if(this.isNegative(this.X)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.X == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    return 2;
+  }
+
+  txa () {
+    // Transfer X to Accumulator
+    this.PC++;
+    this.A = this.X;
+
+    if(this.isNegative(this.A)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.A == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+    return 2;
+  }
+
+  txs () {
+    // Transfer X to Stack Pointer register
+    this.PC++;
+    this.S = this.X;
+    return 2;
+  }
+
+  tya () {
+    // Transfer Y to Accumulator
+    this.PC++;
+    this.A = this.Y;
+
+    if(this.isNegative(this.A)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.A == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+    return 2;
   }
 
   isNegative (val) {
