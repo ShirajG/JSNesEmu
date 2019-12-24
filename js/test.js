@@ -355,8 +355,25 @@ function testBEQop(cpu) {
 
   cpu.PC = 0xFE01;
   cpu.memory[0xFE02] = 0x0011;
-  cpu.setFlag(CPU6502.carry);
+  cpu.setFlag(CPU6502.zero);
   assertEqual(3, cpu.beq());
+}
+
+function testBMIop(cpu) {
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.clearFlag(CPU6502.negative);
+  assertEqual(2, cpu.bmi());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.setFlag(CPU6502.negative);
+  assertEqual(5, cpu.bmi());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x0011;
+  cpu.setFlag(CPU6502.negative);
+  assertEqual(3, cpu.bmi());
 }
 
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
@@ -423,6 +440,7 @@ testBCSop(cpu);
 cpu.reset();
 testBEQop(cpu);
 cpu.reset();
+testBMIop(cpu);
 
 
 // If we get here none of the tests failed...
