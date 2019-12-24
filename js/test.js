@@ -310,6 +310,22 @@ function testTYAop(cpu) {
   assertEqual(true, cpu.flagIsSet(CPU6502.zero));
 }
 
+function testBCCop(cpu) {
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  assertEqual(5, cpu.bcc());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.setFlag(CPU6502.carry);
+  assertEqual(2, cpu.bcc());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x0011;
+  cpu.clearFlag(CPU6502.carry);
+  assertEqual(3, cpu.bcc());
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -367,6 +383,8 @@ cpu.reset();
 testTXSop(cpu);
 cpu.reset();
 testTYAop(cpu);
+cpu.reset();
+testBCCop(cpu);
 cpu.reset();
 
 

@@ -3,6 +3,66 @@ class CPU6502 {
   registers = new Uint8Array(new ArrayBuffer(5));
   PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
 
+  readMemory(address) {
+    return this.memory[address];
+  }
+
+  stackPointer () {
+    return this.S + 0x0100;
+  }
+
+  stackPush (val) {
+    this.memory[this.stackPointer()] = val;
+    this.S--;
+  }
+
+  stackPeek () {
+    return this.memory[this.stackPointer() + 1];
+  }
+
+  stackPop () {
+    this.S++;
+    var val = this.memory[this.stackPointer()];
+    this.memory[this.stackPointer()] = 0;
+    return val;
+  }
+
+  runOp (opCode) {
+    switch (opCode) {
+      case 0x00:
+        return this.brk();
+      default:
+        console.log("NO OP CODE");
+        return;
+    }
+  }
+
+  run () {
+    var op = this.memory[this.PC];
+    this.runOp(op);
+  }
+
+  isNegative (val) {
+    return val & 0b10000000;
+  }
+
+  reset () {
+    this.A = 0;
+    this.X = 0;
+    this.Y = 0;
+    this.PC = null;
+    this.S = 0xFD;
+    this.P = 0x34;
+    this.memory.fill(0x00);
+  }
+
+
+  printStack () {
+    for (var i = this.S; i <= 0xFF; i++) {
+      console.log(`Stack Address ${(0x0100 + i).toString(16)}`, this.memory[0x100 + i]);
+    }
+  }
+
   set A(val) {
     this.registers[0] = val;
   };
@@ -476,59 +536,20 @@ class CPU6502 {
     return 2;
   }
 
-  isNegative (val) {
-    return val & 0b10000000;
-  }
-
-  reset () {
-    this.A = 0;
-    this.X = 0;
-    this.Y = 0;
-    this.PC = null;
-    this.S = 0xFD;
-    this.P = 0x34;
-    this.memory.fill(0x00);
-  }
-
-  stackPointer () {
-    return this.S + 0x0100;
-  }
-
-  stackPush (val) {
-    this.memory[this.stackPointer()] = val;
-    this.S--;
-  }
-
-  stackPeek () {
-    return this.memory[this.stackPointer() + 1];
-  }
-
-  stackPop () {
-    this.S++;
-    var val = this.memory[this.stackPointer()];
-    this.memory[this.stackPointer()] = 0;
-    return val;
-  }
-
-  printStack () {
-    for (var i = this.S; i <= 0xFF; i++) {
-      console.log(`Stack Address ${(0x0100 + i).toString(16)}`, this.memory[0x100 + i]);
+  bcc () {
+    // Branch if Carry Clear
+    this.PC++;
+    var cycles = 2;
+    var pcOffset = this.readMemory(this.PC);
+    var originalPC = this.PC;
+    if (!this.flagIsSet(CPU6502.carry)) {
+      cycles += 1;
+      this.PC += pcOffset;
+      if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
+        cycles += 2;
+      }
     }
-  }
-
-  runOp (opCode) {
-    switch (opCode) {
-      case 0x00:
-        return this.brk();
-      default:
-        console.log("NO OP CODE");
-        return;
-    }
-  }
-
-  run () {
-    var op = this.memory[this.PC];
-    this.runOp(op);
+    return cycles;
   }
 }
 
