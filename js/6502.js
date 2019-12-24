@@ -631,6 +631,38 @@ class CPU6502 {
     }
     return cycles;
   }
+
+  bvc () {
+    // Branch if Overflow Clear
+    this.PC++;
+    var cycles = 2;
+    var pcOffset = this.readMemory(this.PC);
+    var originalPC = this.PC;
+    if (!this.flagIsSet(CPU6502.overflow)) {
+      cycles += 1;
+      this.PC += pcOffset;
+      if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
+        cycles += 2;
+      }
+    }
+    return cycles;
+  }
+
+  bvs () {
+    // Branch if Overflow Set
+    this.PC++;
+    var cycles = 2;
+    var pcOffset = this.readMemory(this.PC);
+    var originalPC = this.PC;
+    if (this.flagIsSet(CPU6502.overflow)) {
+      cycles += 1;
+      this.PC += pcOffset;
+      if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
+        cycles += 2;
+      }
+    }
+    return cycles;
+  }
 }
 
 /* Symbols for each Status Flag
