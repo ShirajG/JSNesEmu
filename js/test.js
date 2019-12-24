@@ -342,6 +342,23 @@ function testBCSop(cpu) {
   assertEqual(3, cpu.bcs());
 }
 
+function testBEQop(cpu) {
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.clearFlag(CPU6502.zero);
+  assertEqual(2, cpu.beq());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.setFlag(CPU6502.zero);
+  assertEqual(5, cpu.beq());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x0011;
+  cpu.setFlag(CPU6502.carry);
+  assertEqual(3, cpu.beq());
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -403,6 +420,8 @@ cpu.reset();
 testBCCop(cpu);
 cpu.reset();
 testBCSop(cpu);
+cpu.reset();
+testBEQop(cpu);
 cpu.reset();
 
 
