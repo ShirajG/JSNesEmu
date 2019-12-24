@@ -326,6 +326,22 @@ function testBCCop(cpu) {
   assertEqual(3, cpu.bcc());
 }
 
+function testBCSop(cpu) {
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  assertEqual(2, cpu.bcs());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.setFlag(CPU6502.carry);
+  assertEqual(5, cpu.bcs());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x0011;
+  cpu.setFlag(CPU6502.carry);
+  assertEqual(3, cpu.bcs());
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -385,6 +401,8 @@ cpu.reset();
 testTYAop(cpu);
 cpu.reset();
 testBCCop(cpu);
+cpu.reset();
+testBCSop(cpu);
 cpu.reset();
 
 
