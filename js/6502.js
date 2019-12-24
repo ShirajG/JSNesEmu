@@ -584,6 +584,22 @@ class CPU6502 {
     return cycles;
   }
 
+  bne () {
+    // Branch if Not Equal
+    this.PC++;
+    var cycles = 2;
+    var pcOffset = this.readMemory(this.PC);
+    var originalPC = this.PC;
+    if (!this.flagIsSet(CPU6502.zero)) {
+      cycles += 1;
+      this.PC += pcOffset;
+      if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
+        cycles += 2;
+      }
+    }
+    return cycles;
+  }
+
   bmi () {
     // Branch if Minus
     this.PC++;

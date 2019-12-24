@@ -359,6 +359,23 @@ function testBEQop(cpu) {
   assertEqual(3, cpu.beq());
 }
 
+function testBNEop(cpu) {
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.clearFlag(CPU6502.zero);
+  assertEqual(5, cpu.bne());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.setFlag(CPU6502.zero);
+  assertEqual(2, cpu.bne());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x0011;
+  cpu.clearFlag(CPU6502.zero);
+  assertEqual(3, cpu.bne());
+}
+
 function testBMIop(cpu) {
   cpu.PC = 0xFE01;
   cpu.memory[0xFE02] = 0x00FF;
@@ -441,6 +458,8 @@ cpu.reset();
 testBEQop(cpu);
 cpu.reset();
 testBMIop(cpu);
+cpu.reset();
+testBNEop(cpu);
 
 
 // If we get here none of the tests failed...
