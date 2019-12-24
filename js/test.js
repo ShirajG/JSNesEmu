@@ -393,6 +393,23 @@ function testBMIop(cpu) {
   assertEqual(3, cpu.bmi());
 }
 
+function testBPLop(cpu) {
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.clearFlag(CPU6502.negative);
+  assertEqual(5, cpu.bpl());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x00FF;
+  cpu.setFlag(CPU6502.negative);
+  assertEqual(2, cpu.bpl());
+
+  cpu.PC = 0xFE01;
+  cpu.memory[0xFE02] = 0x0011;
+  cpu.clearFlag(CPU6502.negative);
+  assertEqual(3, cpu.bpl());
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testStackOperations(cpu);
 cpu.reset();
@@ -460,6 +477,9 @@ cpu.reset();
 testBMIop(cpu);
 cpu.reset();
 testBNEop(cpu);
+cpu.reset();
+testBPLop(cpu);
+cpu.reset();
 
 
 // If we get here none of the tests failed...

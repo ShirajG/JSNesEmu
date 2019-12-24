@@ -615,6 +615,22 @@ class CPU6502 {
     }
     return cycles;
   }
+
+  bpl () {
+    // Branch if Plus
+    this.PC++;
+    var cycles = 2;
+    var pcOffset = this.readMemory(this.PC);
+    var originalPC = this.PC;
+    if (!this.flagIsSet(CPU6502.negative)) {
+      cycles += 1;
+      this.PC += pcOffset;
+      if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
+        cycles += 2;
+      }
+    }
+    return cycles;
+  }
 }
 
 /* Symbols for each Status Flag
