@@ -2,7 +2,6 @@
 TODO ADC
 TODO AND
 TODO ASL
-TODO BIT
 TODO CMP
 TODO CPX
 TODO CPY
@@ -494,7 +493,6 @@ class CPU6502 {
     } else {
       this.clearFlag(CPU6502.zero);
     }
-
     return 2;
   }
 
@@ -689,13 +687,56 @@ class CPU6502 {
     }
     return cycles;
   }
+
+  bit (mode) {
+    // Bit test
+    var cycles = 3;
+    if (mode == CPU6502.absolute) {
+      cycles += 1;
+    }
+    this.PC++;
+    var targetAddress = this.getAddress(mode);
+    var targetValue = this.readMemory(targetAddress);
+
+    if (targetValue & 0b10000000) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (targetValue & 0b01000000) {
+      this.setFlag(CPU6502.overflow);
+    } else {
+      this.clearFlag(CPU6502.overflow);
+    }
+
+    if ((this.A & targetValue) === 0) {
+      this.setFlag(CPU6502.zero)
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    return cycles;
+  }
+
+  getAddress(mode) {
+    var address;
+    switch (mode) {
+      case CPU6502.zeroPage:
+        address = this.readMemory(this.PC);
+        this.PC++;
+        break;
+      case CPU6502.absolute:
+        address = this.read16Bits(this.PC);
+        this.PC += 2;
+        break;
+      default:
+    }
+    return address;
+  }
 }
 
-/* Symbols for each Status Flag
- *
- *
- *
- */
+/* Symbols for each Status Flag */
 CPU6502.carry = Symbol('Carry Flag');
 CPU6502.zero = Symbol('Zero Flag');
 CPU6502.interruptDisable = Symbol('Interrupt Disable Flag');
@@ -704,7 +745,7 @@ CPU6502.break = Symbol('Break Flag');
 CPU6502.overflow = Symbol('Overflow Flag');
 CPU6502.negative = Symbol('Negative Flag');
 
-// Symbols for each Addressing Mode
+/* Symbols for each Addressing Mode */
 CPU6502.accumulator = Symbol('Accumulator Mode');
 CPU6502.immediate = Symbol('Immediate Mode');
 CPU6502.zeroPage = Symbol('Zero Page Mode');
