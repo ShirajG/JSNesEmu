@@ -1,3 +1,29 @@
+/*
+TODO ADC
+TODO AND
+TODO ASL
+TODO BIT
+TODO CMP
+TODO CPX
+TODO CPY
+TODO DEC
+TODO EOR
+TODO INC
+TODO JMP
+TODO JSR
+TODO LDA
+TODO LDX
+TODO LDY
+TODO LSR
+TODO ORA
+TODO ROL
+TODO ROR
+TODO SBC
+TODO STA
+TODO STX
+TODO STY
+*/
+
 class CPU6502 {
   interruptVector = 0xFFFE; // 0xFFFE and 0xFFFF will store a 16 bit address to jump to on interrupt
   registers = new Uint8Array(new ArrayBuffer(5));
