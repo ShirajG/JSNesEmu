@@ -749,7 +749,7 @@ class CPU6502 {
 
   getAddress(mode) {
     var address;
-    var currentAddress;
+    var pageChange = false;
     switch (mode) {
       case CPU6502.zeroPage:
         address = this.readMemory(this.PC);
@@ -757,12 +757,22 @@ class CPU6502 {
         break;
       case CPU6502.zeroPageX:
         address = this.readMemory(this.PC);
-        address += this.X;
+        /* Check for page rollover */
+        if (((address + this.X) / 256) >= 1) {
+          pageChange = true;
+        }
+        /* Clamp to 8 byte values only */
+        address = (address + this.X) % 256;
         this.PC += 2;
         break;
       case CPU6502.zeroPageY:
         address = this.readMemory(this.PC);
-        address += this.Y;
+        /* Check for page rollover */
+        if (((address + this.Y) / 256) >= 1) {
+          pageChange = true;
+        }
+        /* Clamp to 8 byte values only */
+        address = (address + this.Y) % 256;
         this.PC += 2;
         break;
       case CPU6502.absolute:
@@ -771,26 +781,27 @@ class CPU6502 {
         break;
       case CPU6502.absoluteX:
         address = this.read16Bits(this.PC);
-        address += this.X;
+        /* Clamp to 16 bit values only */
+        address = (address + this.X) % 0x10000;
         this.PC += 3;
         break;
       case CPU6502.absoluteY:
         address = this.read16Bits(this.PC);
-        address += this.Y;
+        /* Clamp to 16 bit values only */
+        address = (address + this.Y) % 0x10000;
         this.PC += 3;
         break;
       case CPU6502.indirectX:
         // Probably some overflow logic needed here if X + operand will go to next page
         address = this.readMemory(this.PC);
-        address += this.X;
+        address = (address + this.X) % 0x100;
         address = this.read16Bits(address);
         this.PC += 4;
         break;
       case CPU6502.indirect_Y:
         // Probably some overflow logic needed here if Y + 16bit read will go to next page
-        address = this.readMemory(this.PC);
-        address = this.read16Bits(address);
-        address += this.Y;
+        address = this.read16Bits(this.PC);
+        address = (address + this.Y) % 0x10000;
         this.PC += 4;
         break;
       default:
