@@ -26,6 +26,7 @@ class CPU6502 {
   interruptVector = 0xFFFE; // 0xFFFE and 0xFFFF will store a 16 bit address to jump to on interrupt
   registers = new Uint8Array(new ArrayBuffer(5));
   PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
+  pageCrossed = false;
 
   readMemory(address) {
     return this.memory[address];
@@ -786,9 +787,66 @@ class CPU6502 {
     return cycles;
   }
 
+  and(mode) {
+    // Logical AND with Accumulator
+    var cycles;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cyles = 2;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+      case CPU6502.absoluteX:
+      case CPU6502.absoluteY:
+        cycles = 4;
+        break;
+      case CPU6502.indirectX:
+        cycles = 6;
+        break;
+      case CPU6502.indirectY:
+        cycles = 5;
+        break;
+    }
+
+    var targetAddress = this.getAddress(mode);
+    if (this.pageCrossed) {
+      cycles++;
+    }
+  }
+/*
+  TODO ASL
+  TODO CMP
+  TODO CPX
+  TODO CPY
+  TODO DEC
+  TODO EOR
+  TODO INC
+  TODO JMP
+  TODO JSR
+  TODO LDA
+  TODO LDX
+  TODO LDY
+  TODO LSR
+  TODO ORA
+  TODO ROL
+  TODO ROR
+  TODO ADC
+  TODO SBC
+*/
+
+  setPageCrossing(bool) {
+    if (bool) {
+      this.pageCrossed = true;
+    }
+  }
+
   getAddress(mode) {
     var address;
-    var pageChange = false;
+    this.pageCrossed = false;
     switch (mode) {
       case CPU6502.zeroPage:
         address = this.readMemory(this.PC);
@@ -796,20 +854,12 @@ class CPU6502 {
         break;
       case CPU6502.zeroPageX:
         address = this.readMemory(this.PC);
-        /* Check for page rollover */
-        if (((address + this.X) / 256) >= 1) {
-          pageChange = true;
-        }
         /* Clamp to 8 byte values only */
         address = (address + this.X) % 256;
         this.PC += 2;
         break;
       case CPU6502.zeroPageY:
         address = this.readMemory(this.PC);
-        /* Check for page rollover */
-        if (((address + this.Y) / 256) >= 1) {
-          pageChange = true;
-        }
         /* Clamp to 8 byte values only */
         address = (address + this.Y) % 256;
         this.PC += 2;
@@ -820,26 +870,30 @@ class CPU6502 {
         break;
       case CPU6502.absoluteX:
         address = this.read16Bits(this.PC);
+        // Check for page crossing, will use an extra cycle if so
+        this.setPageCrossing(((address + this.X) & 0xFF00) != (address & 0xFF00));
         /* Clamp to 16 bit values only */
         address = (address + this.X) % 0x10000;
         this.PC += 3;
         break;
       case CPU6502.absoluteY:
         address = this.read16Bits(this.PC);
+        // Check for page crossing, will use an extra cycle if so
+        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
         /* Clamp to 16 bit values only */
         address = (address + this.Y) % 0x10000;
         this.PC += 3;
         break;
       case CPU6502.indirectX:
-        // Probably some overflow logic needed here if X + operand will go to next page
         address = this.readMemory(this.PC);
         address = (address + this.X) % 0x100;
         address = this.read16Bits(address);
         this.PC += 4;
         break;
       case CPU6502.indirect_Y:
-        // Probably some overflow logic needed here if Y + 16bit read will go to next page
         address = this.read16Bits(this.readMemory(this.PC));
+        // Overflow detection logic here, results in an extra cycle
+        this.setPageCrossing(((address + this.Y) & 0xFF00) != (adress & 0xFF00));
         address = (address + this.Y) % 0x10000;
         this.PC += 4;
         break;
