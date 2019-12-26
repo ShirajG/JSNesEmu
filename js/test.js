@@ -654,7 +654,29 @@ function testSTXop(cpu) {
   assertEqual(cpu.X, cpu.memory[0xEA73]);
 }
 
+function testSTYop(cpu) {
+  cpu.Y = 0xF1;
+  cpu.memory[1] = 0x03;
+  cpu.sty(CPU6502.zeroPage);
+  assertEqual(cpu.Y, cpu.memory[0x03]);
+
+  cpu.reset();
+  cpu.Y = 0xF1;
+  cpu.X = 0x01;
+  cpu.memory[1] = 0x03;
+  cpu.sty(CPU6502.zeroPageX);
+  assertEqual(cpu.Y, cpu.memory[0x04]);
+
+  cpu.reset();
+  cpu.Y = 0xF1;
+  cpu.write16Bits(1, 0xEA73);
+  cpu.sty(CPU6502.absolute);
+  assertEqual(cpu.Y, cpu.memory[0xEA73]);
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testSTYop(cpu);
+cpu.reset();
 testSTXop(cpu);
 cpu.reset();
 testSTAop(cpu);

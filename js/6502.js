@@ -766,6 +766,26 @@ class CPU6502 {
     return cycles;
   }
 
+  sty(mode) {
+    // Store Y register to Address
+    var cycles;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+        cycles = 4;
+        break;
+    }
+
+    var targetAddress = this.getAddress(mode);
+    this.memory[targetAddress] = this.Y;
+    return cycles;
+  }
+
   getAddress(mode) {
     var address;
     var pageChange = false;
