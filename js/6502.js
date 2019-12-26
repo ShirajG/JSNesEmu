@@ -719,16 +719,79 @@ class CPU6502 {
     return cycles;
   }
 
+  sta (mode) {
+    // Store Accumulator to memory
+    var cycles;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+        cycles = 4;
+        break;
+      case CPU6502.absoluteX:
+      case CPU6502.absoluteY:
+        cycles = 5;
+        break;
+      case CPU6502.indirectX:
+      case CPU6502.indirect_Y:
+        cycles = 6;
+        break;
+    }
+
+    var targetAddress = this.getAddress(mode);
+    this.memory[targetAddress] = this.A;
+    return cycles;
+  }
+
   getAddress(mode) {
     var address;
+    var currentAddress;
     switch (mode) {
       case CPU6502.zeroPage:
         address = this.readMemory(this.PC);
         this.PC++;
         break;
+      case CPU6502.zeroPageX:
+        address = this.readMemory(this.PC);
+        address += this.X;
+        this.PC += 2;
+        break;
+      case CPU6502.zeroPageY:
+        address = this.readMemory(this.PC);
+        address += this.Y;
+        this.PC += 2;
+        break;
       case CPU6502.absolute:
         address = this.read16Bits(this.PC);
         this.PC += 2;
+        break;
+      case CPU6502.absoluteX:
+        address = this.read16Bits(this.PC);
+        address += this.X;
+        this.PC += 3;
+        break;
+      case CPU6502.absoluteY:
+        address = this.read16Bits(this.PC);
+        address += this.Y;
+        this.PC += 3;
+        break;
+      case CPU6502.indirectX:
+        // Probably some overflow logic needed here if X + operand will go to next page
+        address = this.readMemory(this.PC);
+        address += this.X;
+        address = this.read16Bits(address);
+        this.PC += 4;
+        break;
+      case CPU6502.indirect_Y:
+        // Probably some overflow logic needed here if Y + 16bit read will go to next page
+        address = this.readMemory(this.PC);
+        address = this.read16Bits(address);
+        address += this.Y;
+        this.PC += 4;
         break;
       default:
     }
