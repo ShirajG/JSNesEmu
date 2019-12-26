@@ -568,19 +568,75 @@ function testIndirectXAddressing(cpu) {
 }
 
 function testIndirectYAddressing(cpu) {
-  cpu.PC = 0x04;
+  cpu.PC = 1;
   cpu.Y = 0x04;
-  cpu.write16Bits(0x04, 0xFA73);
+  cpu.memory[1] = 0x24;
+  cpu.write16Bits(0x24, 0xFA73);
   assertEqual(0xFA77, cpu.getAddress(CPU6502.indirect_Y));
 
   /* Test Wraparound */
-  cpu.PC = 0x04;
+  cpu.reset();
+  cpu.PC = 1;
   cpu.Y = 0xFF;
+  cpu.memory[1] = 0x04;
   cpu.write16Bits(0x04, 0xFF73);
   assertEqual(0x72, cpu.getAddress(CPU6502.indirect_Y));
 }
 
+function testSTAop(cpu) {
+  // tests STA $03
+  cpu.A = 0xF1;
+  cpu.memory[1] = 0x03;
+  cpu.sta(CPU6502.zeroPage);
+  assertEqual(cpu.A, cpu.memory[0x03]);
+
+  cpu.reset();
+  cpu.A = 0xF1;
+  cpu.X = 0x02;
+  cpu.memory[1] = 0x02;
+  cpu.sta(CPU6502.zeroPageX);
+  assertEqual(cpu.A, cpu.memory[0x04]);
+
+  cpu.reset();
+  cpu.A = 0xF1;
+  cpu.write16Bits(0x0001, 0x1234);
+  cpu.sta(CPU6502.absolute);
+  assertEqual(cpu.A, cpu.memory[0x1234]);
+
+  cpu.reset();
+  cpu.A = 0xF1;
+  cpu.X = 0x02;
+  cpu.write16Bits(0x0001, 0x1234);
+  cpu.sta(CPU6502.absoluteX);
+  assertEqual(cpu.A, cpu.memory[0x1236]);
+
+  cpu.reset();
+  cpu.A = 0xF1;
+  cpu.Y = 0x02;
+  cpu.write16Bits(0x0001, 0x1234);
+  cpu.sta(CPU6502.absoluteY);
+  assertEqual(cpu.A, cpu.memory[0x1236]);
+
+  cpu.reset();
+  cpu.A = 0xF1;
+  cpu.X = 0x02;
+  cpu.memory[0x0001] = 0x0034;
+  cpu.write16Bits(0x0036, 0xFAF0);
+  cpu.sta(CPU6502.indirectX);
+  assertEqual(cpu.A, cpu.memory[0xFAF0]);
+
+  cpu.reset();
+  cpu.A = 0xF1;
+  cpu.Y = 0x02;
+  cpu.memory[0x0001] = 0x0034;
+  cpu.write16Bits(0x0034, 0xFAF0);
+  cpu.sta(CPU6502.indirect_Y);
+  assertEqual(cpu.A, cpu.memory[0xFAF2]);
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testSTAop(cpu);
+cpu.reset();
 testIndirectYAddressing(cpu);
 cpu.reset();
 testIndirectXAddressing(cpu);

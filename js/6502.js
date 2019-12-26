@@ -800,7 +800,7 @@ class CPU6502 {
         break;
       case CPU6502.indirect_Y:
         // Probably some overflow logic needed here if Y + 16bit read will go to next page
-        address = this.read16Bits(this.PC);
+        address = this.read16Bits(this.readMemory(this.PC));
         address = (address + this.Y) % 0x10000;
         this.PC += 4;
         break;
