@@ -795,7 +795,64 @@ function testANDop(cpu) {
   assertEqual(false, cpu.flagIsSet(CPU6502.zero))
 }
 
+function testASLop(cpu) {
+  cpu.A = 0b10000000;
+  assertEqual(2, cpu.asl(CPU6502.accumulator));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(0, cpu.A);
+
+  cpu.reset();
+  cpu.A = 0b11000000;
+  assertEqual(2, cpu.asl(CPU6502.accumulator));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(128, cpu.A);
+
+  cpu.reset();
+  cpu.memory[1] = 0xF1;
+  cpu.memory[0xF1] = 0b11000000;
+  assertEqual(5, cpu.asl(CPU6502.zeroPage));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(128, cpu.memory[0xF1]);
+
+  cpu.reset();
+  cpu.X = 1;
+  cpu.memory[1] = 0xF0;
+  cpu.memory[0xF1] = 0b11000000;
+  assertEqual(6, cpu.asl(CPU6502.zeroPageX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(128, cpu.memory[0xF1]);
+
+  cpu.reset();
+  cpu.write16Bits(1, 0xF0);
+  cpu.memory[0xF0] = 0b11000000;
+  assertEqual(6, cpu.asl(CPU6502.absolute));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(128, cpu.memory[0xF0]);
+
+  cpu.reset();
+  cpu.X = 1;
+  cpu.write16Bits(1, 0xF0);
+  cpu.memory[0xF1] = 0b11000000;
+  assertEqual(7, cpu.asl(CPU6502.absoluteX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(128, cpu.memory[0xF1]);
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testASLop(cpu);
+cpu.reset();
 testANDop(cpu);
 cpu.reset();
 testSTYop(cpu);

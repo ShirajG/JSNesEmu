@@ -820,8 +820,83 @@ class CPU6502 {
     return cycles;
   }
 
+  shiftLeft(value) {
+    // 8 bit shift left
+    return (value << 1) % 0x100;
+  }
+
+  asl(mode) {
+    // Arithmetic Shift Left
+    var cycles, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.accumulator:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 5;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+        cycles = 6;
+        break;
+      case CPU6502.absoluteX:
+        cycles = 7;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+    targetValue = this.readMemory(targetAddress);
+
+    if (mode == CPU6502.accumulator) {
+      if (this.A & 0b10000000) {
+        this.setFlag(CPU6502.carry);
+      } else {
+        this.clearFlag(CPU6502.carry);
+      }
+
+      this.A = this.shiftLeft(this.A);
+
+      if (this.isNegative(this.A)) {
+        this.setFlag(CPU6502.negative);
+      } else {
+        this.clearFlag(CPU6502.negative);
+      }
+
+      if (this.A === 0) {
+        this.setFlag(CPU6502.zero);
+      } else {
+        this.clearFlag(CPU6502.zero);
+      }
+    } else {
+      if (targetValue & 0b10000000) {
+        this.setFlag(CPU6502.carry);
+      } else {
+        this.clearFlag(CPU6502.carry);
+      }
+
+      this.memory[targetAddress] = this.shiftLeft(targetValue);
+
+      targetValue = this.readMemory(targetAddress);
+
+      if (this.isNegative(targetValue)) {
+        this.setFlag(CPU6502.negative);
+      } else {
+        this.clearFlag(CPU6502.negative);
+      }
+
+      if (targetValue === 0) {
+        this.setFlag(CPU6502.zero);
+      } else {
+        this.clearFlag(CPU6502.zero);
+      }
+    }
+
+    return cycles;
+  }
+
 /*
-  TODO ASL
   TODO CMP
   TODO CPX
   TODO CPY
