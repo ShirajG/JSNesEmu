@@ -1,4 +1,3 @@
-
 class CPU6502 {
   interruptVector = 0xFFFE; // 0xFFFE and 0xFFFF will store a 16 bit address to jump to on interrupt
   registers = new Uint8Array(new ArrayBuffer(5));
@@ -957,7 +956,6 @@ class CPU6502 {
   }
 
 /*
-  TODO CMP
   TODO CPX
   TODO CPY
   TODO DEC
