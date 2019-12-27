@@ -896,6 +896,66 @@ class CPU6502 {
     return cycles;
   }
 
+  cmp(mode) {
+    // Compare Memory to the Accumulator value
+    var cycles, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+      case CPU6502.absoluteX:
+      case CPU6502.absoluteY:
+        cycles = 4;
+        break;
+      case CPU6502.indirectX:
+        cycles = 6;
+        break;
+      case CPU6502.indirect_Y:
+        cycles = 5;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+
+    if (this.pageCrossed) {
+      cycles++;
+    }
+
+    if (mode == CPU6502.immediate) {
+      targetValue = targetAddress;
+    } else {
+      targetValue = cpu.readMemory(targetAddress);
+    }
+
+    if (this.A >= targetValue) {
+      this.setFlag(CPU6502.carry);
+    } else {
+      this.clearFlag(CPU6502.carry);
+    }
+
+    if (this.A === targetValue) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    // Limit subraction to 8 bits
+    if (this.isNegative(Math.abs((this.A - targetValue) % 0x100))) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    return cycles;
+  }
+
 /*
   TODO CMP
   TODO CPX
