@@ -674,7 +674,130 @@ function testSTYop(cpu) {
   assertEqual(cpu.Y, cpu.memory[0xEA73]);
 }
 
+function testANDop(cpu) {
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.memory[1] = 0x0F;
+  assertEqual(2, cpu.and(CPU6502.immediate));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.memory[1] = 0xF0;
+  assertEqual(2, cpu.and(CPU6502.immediate));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.memory[0x34] = 0x80;
+  cpu.memory[1] = 0x34;
+  assertEqual(3, cpu.and(CPU6502.zeroPage));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.memory[1] = 0x34;
+  cpu.X = 0x01;
+  cpu.memory[0x35] = 0x0F;
+  assertEqual(4, cpu.and(CPU6502.zeroPageX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.write16Bits(1,0x0BB8);
+  cpu.memory[0x0BB8] = 0xF0;
+  assertEqual(4, cpu.and(CPU6502.absolute));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.X = 0x01;
+  cpu.write16Bits(1,0x0BB7);
+  cpu.memory[0x0BB8] = 0x0F;
+  assertEqual(4, cpu.and(CPU6502.absoluteX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  // Test extra cycle on page crossing
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.X = 0x01;
+  cpu.write16Bits(1,0x0BFF);
+  cpu.memory[0x0C00] = 0x0F;
+  assertEqual(5, cpu.and(CPU6502.absoluteX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.Y = 0x01;
+  cpu.write16Bits(1,0x0BB7);
+  cpu.memory[0x0BB8] = 0xF0;
+  assertEqual(4, cpu.and(CPU6502.absoluteY));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  // Test extra cycle on page crossing
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.Y = 0x01;
+  cpu.write16Bits(1,0x0BFF);
+  cpu.memory[0x0C00] = 0x0F;
+  assertEqual(5, cpu.and(CPU6502.absoluteY));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xFF;
+  cpu.memory[0x01] = 0x0F;
+  cpu.X = 0x01;
+  cpu.write16Bits(0x10, 0x0BFF);
+  cpu.memory[0x0BFF] = 0x1F;
+  assertEqual(6, cpu.and(CPU6502.indirectX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xFF;
+  cpu.Y = 0x01;
+  cpu.memory[0x01] = 0x0F;
+  cpu.write16Bits(0x0F, 0x0BFE);
+  cpu.memory[0x0BFF] = 0xFF;
+  assertEqual(5, cpu.and(CPU6502.indirect_Y));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xFF;
+  cpu.Y = 0x01;
+  cpu.memory[0x01] = 0x0F;
+  cpu.write16Bits(0x0F, 0x0BFF);
+  cpu.memory[0x0C00] = 0x0F;
+  assertEqual(6, cpu.and(CPU6502.indirect_Y));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testANDop(cpu);
+cpu.reset();
 testSTYop(cpu);
 cpu.reset();
 testSTXop(cpu);

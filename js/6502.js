@@ -767,11 +767,13 @@ class CPU6502 {
   and(mode) {
     // Logical AND with Accumulator
     var cycles;
+    var targetAddress;
     this.PC++;
 
     switch (mode) {
       case CPU6502.immediate:
-        cyles = 2;
+        cycles = 2;
+        break;
       case CPU6502.zeroPage:
         cycles = 3;
         break;
@@ -784,16 +786,40 @@ class CPU6502 {
       case CPU6502.indirectX:
         cycles = 6;
         break;
-      case CPU6502.indirectY:
+      case CPU6502.indirect_Y:
         cycles = 5;
         break;
     }
 
-    var targetAddress = this.getAddress(mode);
+    targetAddress = this.getAddress(mode);
+
     if (this.pageCrossed) {
       cycles++;
     }
+
+    if (mode == CPU6502.immediate) {
+      // In immediate mode, targetAddress is actually the data we want to test against
+      this.A = targetAddress & this.A;
+    } else {
+      this.A = cpu.memory[targetAddress] & this.A;
+    }
+
+
+    if (this.A == 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (this.isNegative(this.A)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    return cycles;
   }
+
 /*
   TODO ASL
   TODO CMP
@@ -825,6 +851,8 @@ class CPU6502 {
     var address;
     this.pageCrossed = false;
     switch (mode) {
+      // Immediate mode gets handled in OP's
+      case CPU6502.immediate:
       case CPU6502.zeroPage:
         address = this.readMemory(this.PC);
         this.PC++;
@@ -870,7 +898,7 @@ class CPU6502 {
       case CPU6502.indirect_Y:
         address = this.read16Bits(this.readMemory(this.PC));
         // Overflow detection logic here, results in an extra cycle
-        this.setPageCrossing(((address + this.Y) & 0xFF00) != (adress & 0xFF00));
+        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
         address = (address + this.Y) % 0x10000;
         this.PC += 4;
         break;
