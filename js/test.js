@@ -968,7 +968,36 @@ function testCMPop(cpu) {
   assertEqual(true, cpu.flagIsSet(CPU6502.carry))
 }
 
+function testCPXop(cpu) {
+  cpu.memory[1] = 0x04;
+  cpu.X = 0x07;
+  assertEqual(2, cpu.cpx(CPU6502.immediate));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry))
+
+  cpu.reset();
+  cpu.X = 0xFF;
+  cpu.memory[1] = 0xF1;
+  cpu.memory[0xF1] = 0xF0;
+  assertEqual(3, cpu.cpx(CPU6502.zeroPage));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry))
+
+  cpu.reset();
+  cpu.X = 0xFE;
+  cpu.write16Bits(1, 0xEE01);
+  cpu.memory[0xEE01] = 0xF0;
+  assertEqual(4, cpu.cpx(CPU6502.absolute));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry))
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testCPXop(cpu);
+cpu.reset();
 testCMPop(cpu);
 cpu.reset();
 testASLop(cpu);

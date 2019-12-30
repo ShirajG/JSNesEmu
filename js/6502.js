@@ -955,8 +955,55 @@ class CPU6502 {
     return cycles;
   }
 
+  cpx (mode) {
+    // Compare X register to memory address
+    var cycles, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.absolute:
+        cycles = 4;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+
+    if (mode == CPU6502.immediate) {
+      targetValue = targetAddress;
+    } else {
+      targetValue = cpu.readMemory(targetAddress);
+    }
+
+    if (this.X >= targetValue) {
+      this.setFlag(CPU6502.carry);
+    } else {
+      this.clearFlag(CPU6502.carry);
+    }
+
+    if (this.X === targetValue) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    // Limit subraction to 8 bits
+    if (this.isNegative(Math.abs((this.X - targetValue) % 0x100))) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    return cycles;
+  }
+
+
 /*
-  TODO CPX
   TODO CPY
   TODO DEC
   TODO EOR
