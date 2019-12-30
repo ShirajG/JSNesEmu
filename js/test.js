@@ -1238,7 +1238,66 @@ function testEORop(cpu) {
   assertEqual(false, cpu.flagIsSet(CPU6502.zero))
 }
 
+function testROLop(cpu) {
+  cpu.PC = 0;
+  cpu.setFlag(CPU6502.carry);
+  cpu.A = 0b01111111;
+  assertEqual(2, cpu.rol(CPU6502.accumulator));
+  assertEqual(0b11111111, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+
+  cpu.reset();
+  cpu.clearFlag(CPU6502.carry);
+  cpu.A = 0b01111111;
+  assertEqual(2, cpu.rol(CPU6502.accumulator));
+  assertEqual(0b11111110, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.setFlag(CPU6502.carry);
+  cpu.memory[1] = 0xF1;
+  cpu.memory[0xF1] = 0b01000000;
+  assertEqual(5, cpu.rol(CPU6502.zeroPage));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(0b10000001, cpu.memory[0xF1]);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 1;
+  cpu.memory[1] = 0xF0;
+  cpu.memory[0xF1] = 0b01000000;
+  assertEqual(6, cpu.rol(CPU6502.zeroPageX));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(0b10000000, cpu.memory[0xF1]);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.memory[1] = 0xF0;
+  cpu.memory[0xF0] = 0b00000011;
+  assertEqual(6, cpu.rol(CPU6502.absolute));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(0b00000110, cpu.memory[0xF0]);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 1;
+  cpu.setFlag(CPU6502.carry);
+  cpu.memory[1] = 0xF0;
+  cpu.memory[0xF1] = 0b00000011;
+  assertEqual(7, cpu.rol(CPU6502.absoluteX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(0b00000111, cpu.memory[0xF1]);
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testROLop(cpu);
+cpu.reset();
 testEORop(cpu);
 cpu.reset();
 testJSRop(cpu);
