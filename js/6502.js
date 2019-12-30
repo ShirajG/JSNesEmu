@@ -12,13 +12,19 @@ class CPU6502 {
     return this.S + 0x0100;
   }
 
+  stackPeek () {
+    return this.memory[this.stackPointer() + 1];
+  }
+
+  stackPeek16 () {
+    var loByte = this.memory[this.stackPointer() + 1];
+    var hiByte = this.memory[this.stackPointer() + 2];
+    return ((hiByte << 8) | loByte);
+  }
+
   stackPush (val) {
     this.memory[this.stackPointer()] = val;
     this.S--;
-  }
-
-  stackPeek () {
-    return this.memory[this.stackPointer() + 1];
   }
 
   stackPop () {
@@ -26,6 +32,29 @@ class CPU6502 {
     var val = this.memory[this.stackPointer()];
     this.memory[this.stackPointer()] = 0;
     return val;
+  }
+
+  stackPushPC () {
+    // This is a 2 part operation that always happens together.
+    // We need to push 2 8bit values to the stack so they can be
+    // rejoined later into a 16bit val
+
+    // Push the Hi Byte of PC
+    this.stackPush((this.PC & 0b1111111100000000) >> 8);
+    // Push Lo Byte
+    this.stackPush((this.PC & 0b0000000011111111));
+  }
+
+  stackPopPC () {
+    // This is a 2 part operation that always happens together.
+    // We need to pop 2 8bit values from the stack so they can be
+    // rejoined later into a 16bit val
+
+    // Push the Hi Byte of PC
+    var loByte = this.stackPop();
+    // Push Lo Byte
+    var hiByte = this.stackPop();
+    return ((hiByte << 8 ) | loByte);
   }
 
   runOp (opCode) {
@@ -118,29 +147,6 @@ class CPU6502 {
       PROGRAM_COUNTER_PC: (this.PC).toString(2),
       PROCESSOR_STATUS_P: (this.P).toString(2),
     });
-  }
-
-  stackPushPC () {
-    // This is a 2 part operation that always happens together.
-    // We need to push 2 8bit values to the stack so they can be
-    // rejoined later into a 16bit val
-
-    // Push the Hi Byte of PC
-    this.stackPush((this.PC & 0b1111111100000000) >> 8);
-    // Push Lo Byte
-    this.stackPush((this.PC & 0b0000000011111111));
-  }
-
-  stackPopPC () {
-    // This is a 2 part operation that always happens together.
-    // We need to pop 2 8bit values from the stack so they can be
-    // rejoined later into a 16bit val
-
-    // Push the Hi Byte of PC
-    var loByte = this.stackPop();
-    // Push Lo Byte
-    var hiByte = this.stackPop();
-    return ((hiByte << 8 ) | loByte);
   }
 
   read16Bits(startingAt) {
@@ -1136,9 +1142,18 @@ class CPU6502 {
     }
   }
 
+  jsr (mode) {
+    // Jump to subroutine
+
+    var targetAddress = this.getAddress(mode);
+    this.stackPushPC();
+    this.PC = targetAddress;
+    // Only an absolute mode version of this exists
+    return 6;
+  }
+
 /*
   TODO EOR
-  TODO JSR
   TODO LDA
   TODO LDX
   TODO LDY

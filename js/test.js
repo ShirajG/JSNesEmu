@@ -1105,7 +1105,18 @@ function testJMPop(cpu) {
   assertEqual(0xDEAD, cpu.PC);
 }
 
+function testJSRop(cpu) {
+  cpu.PC = 0xDEED;
+  cpu.write16Bits(0xDEED, 0x0B0B);
+  assertEqual(6, cpu.jsr(CPU6502.absolute));
+  assertEqual(0x0B0B, cpu.PC);
+  // PC should be incremented by 2 and then pushed to stack
+  assertEqual(0xDEEF, cpu.stackPeek16());
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testJSRop(cpu);
+cpu.reset();
 testJMPop(cpu);
 cpu.reset();
 testINCop(cpu);
