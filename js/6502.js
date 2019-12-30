@@ -1123,9 +1123,21 @@ class CPU6502 {
     return cycles;
   }
 
+  jmp (mode) {
+    // Jump PC to new address
+    var targetAddress = this.getAddress(mode)
+    this.PC = targetAddress;
+
+    switch (mode) {
+      case CPU6502.absolute:
+        return 3;
+      case CPU6502.indirect:
+        return 5;
+    }
+  }
+
 /*
   TODO EOR
-  TODO JMP
   TODO JSR
   TODO LDA
   TODO LDX
@@ -1186,6 +1198,10 @@ class CPU6502 {
         address = (address + this.Y) % 0x10000;
         this.PC += 3;
         break;
+      case CPU6502.indirect:
+        // Only used by JMP instruction
+        address = this.read16Bits(this.read16Bits(this.PC));
+        break;
       case CPU6502.indirectX:
         address = this.readMemory(this.PC);
         address = (address + this.X) % 0x100;
@@ -1222,5 +1238,6 @@ CPU6502.zeroPageX = Symbol('Zero Page X Mode');
 CPU6502.absolute = Symbol('Absolute Mode');
 CPU6502.absoluteX = Symbol('Absolute X Mode');
 CPU6502.absoluteY = Symbol('Absolute Y Mode');
+CPU6502.indirect = Symbol('Indirect Mode'); // only used by JMP
 CPU6502.indirectX = Symbol('Indirect X Mode');
 CPU6502.indirect_Y = Symbol('(Indirect), Y Mode');

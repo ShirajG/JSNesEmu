@@ -1092,7 +1092,22 @@ function testINCop(cpu) {
   assertEqual(true, cpu.flagIsSet(CPU6502.negative))
 }
 
+function testJMPop(cpu) {
+  cpu.PC = 0;
+  cpu.write16Bits(0, 0xABCD);
+  assertEqual(3, cpu.jmp(CPU6502.absolute));
+  assertEqual(0xABCD, cpu.PC);
+
+  cpu.PC = 0;
+  cpu.write16Bits(0, 0xABCD);
+  cpu.write16Bits(0xABCD, 0xDEAD);
+  assertEqual(5, cpu.jmp(CPU6502.indirect));
+  assertEqual(0xDEAD, cpu.PC);
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testJMPop(cpu);
+cpu.reset();
 testINCop(cpu);
 cpu.reset();
 testDECop(cpu);
