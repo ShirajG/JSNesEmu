@@ -1265,13 +1265,74 @@ class CPU6502 {
     return cycles;
   }
 
+  ror (mode) {
+    // Rotate Right
+    this.PC++;
+    var cycles, targetAddress, targetValue, oldCarryBit, newCarryBit, shiftedValue;
+
+    switch (mode) {
+      case CPU6502.accumulator:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 5;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+        cycles = 6;
+        break;
+      case CPU6502.absoluteX:
+        cycles = 7;
+        break;
+    }
+
+    if (mode === CPU6502.accumulator) {
+      targetValue = this.A;
+    } else {
+      targetAddress = this.getAddress(mode);
+      targetValue = this.readMemory(targetAddress);
+    }
+
+    oldCarryBit = this.P & 0b00000001;
+    newCarryBit = targetValue & 0b00000001;
+    shiftedValue = ((targetValue >> 1) %  0b100000000)
+    if (oldCarryBit) {
+      shiftedValue = shiftedValue | 0b10000000;
+    }
+
+    if (newCarryBit) {
+      this.setFlag(CPU6502.carry);
+    } else {
+      this.clearFlag(CPU6502.carry);
+    }
+
+    if (shiftedValue & 0b10000000) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (shiftedValue === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (mode === CPU6502.accumulator) {
+      this.A = shiftedValue;
+    } else {
+      this.memory[targetAddress] = shiftedValue;
+    }
+
+    return cycles;
+  }
+
 /*
   TODO LDA
   TODO LDX
   TODO LDY
   TODO LSR
   TODO ORA
-  TODO ROR
   TODO ADC
   TODO SBC
 */
