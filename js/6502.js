@@ -1205,6 +1205,60 @@ class CPU6502 {
     return cycles;
   }
 
+  ora (mode) {
+    var cycles, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+      case CPU6502.absoluteX:
+      case CPU6502.absoluteY:
+        cycles = 4;
+        break;
+      case CPU6502.indirectX:
+        cycles = 6;
+        break;
+      case CPU6502.indirect_Y:
+        cycles = 5;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+
+    if (mode === CPU6502.immediate) {
+      targetValue = targetAddress;
+    } else {
+      targetValue = this.readMemory(targetAddress);
+    }
+
+    this.A = this.A | targetValue;
+
+    if (this.isNegative(this.A)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.A === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (this.pageCrossed) {
+      cycles++;
+    }
+
+    return cycles;
+  }
+
   rol (mode) {
     // Rotate Left
     this.PC++;
@@ -1332,7 +1386,6 @@ class CPU6502 {
   TODO LDX
   TODO LDY
   TODO LSR
-  TODO ORA
   TODO ADC
   TODO SBC
 */

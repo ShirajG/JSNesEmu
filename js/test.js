@@ -1352,10 +1352,137 @@ function testRORop(cpu) {
   assertEqual(true, cpu.flagIsSet(CPU6502.carry));
 }
 
+function testORAop(cpu) {
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.memory[1] = 0x0F;
+  assertEqual(2, cpu.ora(CPU6502.immediate));
+  assertEqual(0xFF, cpu.A);
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.memory[1] = 0xF0;
+  assertEqual(2, cpu.ora(CPU6502.immediate));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.A = 0xF0;
+  cpu.PC = 0;
+  cpu.memory[1] = 0x34;
+  cpu.memory[0x34] = 0x0F;
+  assertEqual(3, cpu.ora(CPU6502.zeroPage));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.A = 0xF0;
+  cpu.X = 0x01;
+  cpu.PC = 0;
+  cpu.memory[1] = 0x34;
+  cpu.memory[0x35] = 0x0F;
+  assertEqual(4, cpu.ora(CPU6502.zeroPageX));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.write16Bits(1,0x0BB8);
+  cpu.memory[0x0BB8] = 0x00;
+  cpu.A = 0x00;
+  assertEqual(4, cpu.ora(CPU6502.absolute));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.A = 0xF0;
+  cpu.PC = 0;
+  cpu.write16Bits(1, 0x0BB7);
+  cpu.X = 0x01;
+  cpu.memory[0x0BB8] = 0x0F;
+  assertEqual(4, cpu.ora(CPU6502.absoluteX));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  // Test extra cycle on page crossing
+  cpu.reset();
+  cpu.A = 0b00001111;
+  cpu.X = 0x01;
+  cpu.PC = 0;
+  cpu.write16Bits(1,0x0BFF);
+  cpu.memory[0x0C00] = 0x0F;
+  assertEqual(5, cpu.ora(CPU6502.absoluteX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+
+  cpu.reset();
+  cpu.A = 0x0F;
+  cpu.PC = 0;
+  cpu.Y = 0x01;
+  cpu.write16Bits(1,0x0BB7);
+  cpu.memory[0x0BB8] = 0x0F;
+  assertEqual(4, cpu.ora(CPU6502.absoluteY));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+
+  // Test extra cycle on page crossing
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xF0;
+  cpu.Y = 0x01;
+  cpu.write16Bits(1,0x0BFF);
+  cpu.memory[0x0C00] = 0x0F;
+  assertEqual(5, cpu.ora(CPU6502.absoluteY));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(255, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xFF;
+  cpu.memory[0x01] = 0x0F;
+  cpu.X = 0x01;
+  cpu.write16Bits(0x10, 0x0BFF);
+  cpu.memory[0x0BFF] = 0x1F;
+  assertEqual(6, cpu.ora(CPU6502.indirectX));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(0xFF, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0xFF;
+  cpu.Y = 0x01;
+  cpu.memory[0x01] = 0x0F;
+  cpu.write16Bits(0x0F, 0x0BFE);
+  cpu.memory[0x0BFF] = 0xFF;
+  assertEqual(5, cpu.ora(CPU6502.indirect_Y));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(0xFF, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.A = 0x0;
+  cpu.Y = 0x01;
+  cpu.memory[0x01] = 0x0F;
+  cpu.write16Bits(0x0F, 0x0BFF);
+  cpu.memory[0x0C00] = 0x00;
+  assertEqual(6, cpu.ora(CPU6502.indirect_Y));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
 testRORop(cpu);
 cpu.reset();
 testROLop(cpu);
+cpu.reset();
+testORAop(cpu);
 cpu.reset();
 testEORop(cpu);
 cpu.reset();
