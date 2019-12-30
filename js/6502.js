@@ -1144,7 +1144,6 @@ class CPU6502 {
 
   jsr (mode) {
     // Jump to subroutine
-
     var targetAddress = this.getAddress(mode);
     this.stackPushPC();
     this.PC = targetAddress;
@@ -1152,8 +1151,61 @@ class CPU6502 {
     return 6;
   }
 
+  eor (mode) {
+    var cycles, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+      case CPU6502.absoluteX:
+      case CPU6502.absoluteY:
+        cycles = 4;
+        break;
+      case CPU6502.indirectX:
+        cycles = 6;
+        break;
+      case CPU6502.indirect_Y:
+        cycles = 5;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+
+    if (mode === CPU6502.immediate) {
+      targetValue = targetAddress;
+    } else {
+      targetValue = this.readMemory(targetAddress);
+    }
+
+    this.A = this.A ^ targetValue;
+
+    if (this.isNegative(this.A)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.A === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (this.pageCrossed) {
+      cycles++;
+    }
+
+    return cycles;
+  }
+
 /*
-  TODO EOR
   TODO LDA
   TODO LDX
   TODO LDY
