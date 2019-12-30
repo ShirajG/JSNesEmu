@@ -1086,9 +1086,45 @@ class CPU6502 {
     return cycles;
   }
 
+  inc (mode) {
+    var cycles, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.zeroPage:
+        cycles = 5;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+        cycles = 6;
+        break;
+      case CPU6502.absoluteX:
+        cycles = 7;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+    cpu.memory[targetAddress] += 1;
+    targetValue = cpu.readMemory(targetAddress);
+
+    if (targetValue === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    // Limit subraction to 8 bits
+    if (this.isNegative(targetValue)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    return cycles;
+  }
+
 /*
   TODO EOR
-  TODO INC
   TODO JMP
   TODO JSR
   TODO LDA
