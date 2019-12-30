@@ -1003,7 +1003,7 @@ class CPU6502 {
   }
 
   cpy (mode) {
-    // Compare X register to memory address
+    // Compare Y register to memory address
     var cycles, targetAddress, targetValue;
     this.PC++;
 
@@ -1049,9 +1049,44 @@ class CPU6502 {
     return cycles;
   }
 
+  dec (mode) {
+    var cycles, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.zeroPage:
+        cycles = 5;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+        cycles = 6;
+        break;
+      case CPU6502.absoluteX:
+        cycles = 7;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+    cpu.memory[targetAddress] -= 1;
+    targetValue = cpu.readMemory(targetAddress);
+
+    if (targetValue === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    // Limit subraction to 8 bits
+    if (this.isNegative(targetValue)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    return cycles;
+  }
 
 /*
-  TODO DEC
   TODO EOR
   TODO INC
   TODO JMP

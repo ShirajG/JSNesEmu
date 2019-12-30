@@ -1022,7 +1022,44 @@ function testCPYop(cpu) {
   assertEqual(true, cpu.flagIsSet(CPU6502.carry))
 }
 
+function testDECop(cpu) {
+  cpu.memory[0x0001] = 0x34;
+  cpu.memory[0x0034] = 100;
+  assertEqual(5, cpu.dec(CPU6502.zeroPage));
+  assertEqual(99, cpu.memory[0x0034]);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+
+  cpu.reset();
+  cpu.X = 1;
+  cpu.memory[0x0001] = 0x33;
+  cpu.memory[0x0034] = 1;
+  assertEqual(6, cpu.dec(CPU6502.zeroPageX));
+  assertEqual(0, cpu.memory[0x0034]);
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+
+  cpu.reset();
+  cpu.write16Bits(1, 0xABCD);
+  cpu.memory[0xABCD] = 0;
+  assertEqual(6, cpu.dec(CPU6502.absolute));
+  assertEqual(255, cpu.memory[0xABCD]);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+
+  cpu.reset();
+  cpu.X = 1;
+  cpu.write16Bits(1, 0xABCC);
+  cpu.memory[0xABCD] = 255;
+  assertEqual(7, cpu.dec(CPU6502.absoluteX));
+  assertEqual(254, cpu.memory[0xABCD]);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testDECop(cpu);
+cpu.reset();
 testCPYop(cpu);
 cpu.reset();
 testCPXop(cpu);
