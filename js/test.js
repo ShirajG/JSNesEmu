@@ -1477,7 +1477,264 @@ function testORAop(cpu) {
   assertEqual(true, cpu.flagIsSet(CPU6502.zero))
 }
 
+function testLDAop(cpu) {
+  cpu.A = 0;
+  cpu.PC = 0;
+  cpu.memory[1] = 0x10;
+  assertEqual(2, cpu.lda(CPU6502.immediate));
+  assertEqual(0x10, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.memory[1] = 0x10;
+  cpu.memory[0x10] = 0xAB;
+  assertEqual(3, cpu.lda(CPU6502.zeroPage));
+  assertEqual(0xAB, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 0x02;
+  cpu.memory[1] = 0x10;
+  cpu.memory[0x12] = 0xAB;
+  assertEqual(4, cpu.lda(CPU6502.zeroPageX));
+  assertEqual(0xAB, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 0x02;
+  cpu.memory[1] = 0x10;
+  cpu.memory[0x12] = 0xAB;
+  assertEqual(4, cpu.lda(CPU6502.zeroPageX));
+  assertEqual(0xAB, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.write16Bits(1, 0x1234);
+  cpu.memory[0x1234] = 0x10;
+  assertEqual(4, cpu.lda(CPU6502.absolute));
+  assertEqual(0x10, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 0x03;
+  cpu.write16Bits(1, 0x1234);
+  cpu.memory[0x1237] = 0x10;
+  assertEqual(4, cpu.lda(CPU6502.absoluteX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(0x10, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 0x01;
+  cpu.write16Bits(1, 0x12FF);
+  cpu.memory[0x1300] = 0xF0;
+  assertEqual(5, cpu.lda(CPU6502.absoluteX));
+
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative))
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero))
+  assertEqual(0xF0, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.Y = 0x01;
+  cpu.write16Bits(1, 0x12FE);
+  cpu.memory[0x12FF] = 0x0;
+  assertEqual(4, cpu.lda(CPU6502.absoluteY));
+  assertEqual(0x0, cpu.A);
+
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.Y = 0x01;
+  cpu.write16Bits(1, 0x12FF);
+  cpu.memory[0x1300] = 0x10;
+  assertEqual(5, cpu.lda(CPU6502.absoluteY));
+  assertEqual(0x10, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 0x01;
+  cpu.memory[1] = 0x55;
+  cpu.write16Bits(0x56, 0xABCD);
+  cpu.memory[0xABCD] = 0x10;
+  assertEqual(6, cpu.lda(CPU6502.indirectX));
+  assertEqual(0x10, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.Y = 0x01;
+  cpu.memory[1] = 0x55;
+  cpu.write16Bits(0x55, 0xABCD);
+  cpu.memory[0xABCE] = 0x10;
+  assertEqual(5, cpu.lda(CPU6502.indirect_Y));
+  assertEqual(0x10, cpu.A);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.Y = 0x01;
+  cpu.memory[1] = 0x55;
+  cpu.write16Bits(0x55, 0xABFF);
+  cpu.memory[0xAC00] = 0x10;
+  assertEqual(6, cpu.lda(CPU6502.indirect_Y));
+  assertEqual(0x10, cpu.A);
+}
+
+function testLDXop(cpu) {
+  cpu.PC = 0;
+  cpu.memory[1] = 0x10;
+  assertEqual(2, cpu.ldx(CPU6502.immediate));
+  assertEqual(0x10, cpu.X);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.memory[1] = 0x10;
+  cpu.memory[0x10] = 0xAB;
+  assertEqual(3, cpu.ldx(CPU6502.zeroPage));
+  assertEqual(0xAB, cpu.X);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.Y = 0x01;
+  cpu.memory[1] = 0x10;
+  cpu.memory[0x11] = 0xAB;
+  assertEqual(4, cpu.ldx(CPU6502.zeroPageY));
+  assertEqual(0xAB, cpu.X);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.write16Bits(1, 0x1234);
+  cpu.memory[0x1234] = 0x10;
+  assertEqual(4, cpu.ldx(CPU6502.absolute));
+  assertEqual(0x10, cpu.X);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.Y = 0x01;
+  cpu.write16Bits(1, 0x12FE);
+  cpu.memory[0x12FF] = 0x0;
+  assertEqual(4, cpu.ldx(CPU6502.absoluteY));
+  assertEqual(0x0, cpu.X);
+
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.Y = 0x01;
+  cpu.write16Bits(1, 0x12FF);
+  cpu.memory[0x1300] = 0x10;
+  assertEqual(5, cpu.ldx(CPU6502.absoluteY));
+  assertEqual(0x10, cpu.X);
+}
+
+function testLDYop(cpu) {
+  cpu.PC = 0;
+  cpu.memory[1] = 0x10;
+  assertEqual(2, cpu.ldy(CPU6502.immediate));
+  assertEqual(0x10, cpu.Y);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.memory[1] = 0x10;
+  cpu.memory[0x10] = 0xAB;
+  assertEqual(3, cpu.ldy(CPU6502.zeroPage));
+  assertEqual(0xAB, cpu.Y);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 0x01;
+  cpu.memory[1] = 0x10;
+  cpu.memory[0x11] = 0xAB;
+  assertEqual(4, cpu.ldy(CPU6502.zeroPageX));
+  assertEqual(0xAB, cpu.Y);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.write16Bits(1, 0x1234);
+  cpu.memory[0x1234] = 0x10;
+  assertEqual(4, cpu.ldy(CPU6502.absolute));
+  assertEqual(0x10, cpu.Y);
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 0x01;
+  cpu.write16Bits(1, 0x12FE);
+  cpu.memory[0x12FF] = 0x0;
+  assertEqual(4, cpu.ldy(CPU6502.absoluteX));
+  assertEqual(0x0, cpu.Y);
+
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero))
+
+  cpu.reset();
+  cpu.PC = 0;
+  cpu.X = 0x01;
+  cpu.write16Bits(1, 0x12FF);
+  cpu.memory[0x1300] = 0x10;
+  assertEqual(5, cpu.ldy(CPU6502.absoluteX));
+  assertEqual(0x10, cpu.Y);
+}
+
+function testLSRop(cpu) {
+  cpu.A = 0b00000001;
+  assertEqual(2, cpu.lsr(CPU6502.accumulator));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(0, cpu.A);
+
+  cpu.reset();
+  cpu.A = 0b00000011;
+  assertEqual(2, cpu.lsr(CPU6502.accumulator));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(1, cpu.A);
+
+  cpu.reset();
+  cpu.memory[1] = 0xF1;
+  cpu.memory[0xF1] = 0b00000011;
+  assertEqual(5, cpu.lsr(CPU6502.zeroPage));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(1, cpu.memory[0xF1]);
+
+  cpu.reset();
+  cpu.X = 1;
+  cpu.memory[1] = 0xF0;
+  cpu.memory[0xF1] = 0b11000000;
+  assertEqual(6, cpu.lsr(CPU6502.zeroPageX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(96, cpu.memory[0xF1]);
+
+  cpu.reset();
+  cpu.write16Bits(1, 0xF0);
+  cpu.memory[0xF0] = 0b11000000;
+  assertEqual(6, cpu.lsr(CPU6502.absolute));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(96, cpu.memory[0xF0]);
+
+  cpu.reset();
+  cpu.X = 1;
+  cpu.write16Bits(1, 0xF0);
+  cpu.memory[0xF1] = 0b11000001;
+  assertEqual(7, cpu.lsr(CPU6502.absoluteX));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(96, cpu.memory[0xF1]);
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testLSRop(cpu);
+cpu.reset();
+testLDYop(cpu);
+cpu.reset();
+testLDXop(cpu);
+cpu.reset();
+testLDAop(cpu);
+cpu.reset();
 testRORop(cpu);
 cpu.reset();
 testROLop(cpu);

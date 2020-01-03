@@ -4,6 +4,76 @@ class CPU6502 {
   PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
   pageCrossed = false;
 
+  setPageCrossing(bool) {
+    if (bool) {
+      this.pageCrossed = true;
+    }
+  }
+
+  getAddress(mode) {
+    var address;
+    this.pageCrossed = false;
+    switch (mode) {
+      // Immediate mode gets handled in OP's
+      case CPU6502.immediate:
+      case CPU6502.zeroPage:
+        address = this.readMemory(this.PC);
+        this.PC++;
+        break;
+      case CPU6502.zeroPageX:
+        address = this.readMemory(this.PC);
+        /* Clamp to 8 byte values only */
+        address = (address + this.X) % 256;
+        this.PC += 2;
+        break;
+      case CPU6502.zeroPageY:
+        address = this.readMemory(this.PC);
+        /* Clamp to 8 byte values only */
+        address = (address + this.Y) % 256;
+        this.PC += 2;
+        break;
+      case CPU6502.absolute:
+        address = this.read16Bits(this.PC);
+        this.PC += 2;
+        break;
+      case CPU6502.absoluteX:
+        address = this.read16Bits(this.PC);
+        // Check for page crossing, will use an extra cycle if so
+        this.setPageCrossing(((address + this.X) & 0xFF00) != (address & 0xFF00));
+        /* Clamp to 16 bit values only */
+        address = (address + this.X) % 0x10000;
+        this.PC += 3;
+        break;
+      case CPU6502.absoluteY:
+        address = this.read16Bits(this.PC);
+        // Check for page crossing, will use an extra cycle if so
+        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
+        /* Clamp to 16 bit values only */
+        address = (address + this.Y) % 0x10000;
+        this.PC += 3;
+        break;
+      case CPU6502.indirect:
+        // Only used by JMP instruction
+        address = this.read16Bits(this.read16Bits(this.PC));
+        break;
+      case CPU6502.indirectX:
+        address = this.readMemory(this.PC);
+        address = (address + this.X) % 0x100;
+        address = this.read16Bits(address);
+        this.PC += 4;
+        break;
+      case CPU6502.indirect_Y:
+        address = this.read16Bits(this.readMemory(this.PC));
+        // Overflow detection logic here, results in an extra cycle
+        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
+        address = (address + this.Y) % 0x10000;
+        this.PC += 4;
+        break;
+      default:
+    }
+    return address;
+  }
+
   readMemory(address) {
     return this.memory[address];
   }
@@ -830,6 +900,11 @@ class CPU6502 {
     return (value << 1) % 0x100;
   }
 
+  shiftRight(value) {
+    // 8 bit shift right
+    return (value >> 1) % 0x100;
+  }
+
   asl(mode) {
     // Arithmetic Shift Left
     var cycles, targetAddress, targetValue;
@@ -1381,83 +1456,216 @@ class CPU6502 {
     return cycles;
   }
 
-/*
-  TODO LDA
-  TODO LDX
-  TODO LDY
-  TODO LSR
-  TODO ADC
-  TODO SBC
-*/
+  lda (mode) {
+    this.PC++;
+    var cycles, targetAddress, targetValue;
 
-  setPageCrossing(bool) {
-    if (bool) {
-      this.pageCrossed = true;
-    }
-  }
-
-  getAddress(mode) {
-    var address;
-    this.pageCrossed = false;
     switch (mode) {
-      // Immediate mode gets handled in OP's
       case CPU6502.immediate:
+        cycles = 2;
+        break;
       case CPU6502.zeroPage:
-        address = this.readMemory(this.PC);
-        this.PC++;
+        cycles = 3;
         break;
       case CPU6502.zeroPageX:
-        address = this.readMemory(this.PC);
-        /* Clamp to 8 byte values only */
-        address = (address + this.X) % 256;
-        this.PC += 2;
-        break;
-      case CPU6502.zeroPageY:
-        address = this.readMemory(this.PC);
-        /* Clamp to 8 byte values only */
-        address = (address + this.Y) % 256;
-        this.PC += 2;
-        break;
       case CPU6502.absolute:
-        address = this.read16Bits(this.PC);
-        this.PC += 2;
-        break;
       case CPU6502.absoluteX:
-        address = this.read16Bits(this.PC);
-        // Check for page crossing, will use an extra cycle if so
-        this.setPageCrossing(((address + this.X) & 0xFF00) != (address & 0xFF00));
-        /* Clamp to 16 bit values only */
-        address = (address + this.X) % 0x10000;
-        this.PC += 3;
-        break;
       case CPU6502.absoluteY:
-        address = this.read16Bits(this.PC);
-        // Check for page crossing, will use an extra cycle if so
-        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
-        /* Clamp to 16 bit values only */
-        address = (address + this.Y) % 0x10000;
-        this.PC += 3;
-        break;
-      case CPU6502.indirect:
-        // Only used by JMP instruction
-        address = this.read16Bits(this.read16Bits(this.PC));
+        cycles = 4;
         break;
       case CPU6502.indirectX:
-        address = this.readMemory(this.PC);
-        address = (address + this.X) % 0x100;
-        address = this.read16Bits(address);
-        this.PC += 4;
+        cycles = 6;
         break;
       case CPU6502.indirect_Y:
-        address = this.read16Bits(this.readMemory(this.PC));
-        // Overflow detection logic here, results in an extra cycle
-        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
-        address = (address + this.Y) % 0x10000;
-        this.PC += 4;
+        cycles = 5;
         break;
-      default:
     }
-    return address;
+
+    targetAddress = this.getAddress(mode);
+
+    if (mode === CPU6502.immediate) {
+      targetValue = targetAddress;
+    } else {
+      targetValue = this.readMemory(targetAddress);
+    }
+
+    this.A = targetValue;
+
+    if (this.isNegative(this.A)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.A === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (this.pageCrossed) {
+      cycles++;
+    }
+
+    return cycles;
+  }
+
+  ldx (mode) {
+    // Load X register
+    this.PC++;
+    var cycles, targetAddress, targetValue;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageY:
+      case CPU6502.absolute:
+      case CPU6502.absoluteY:
+        cycles = 4;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+
+    if (mode === CPU6502.immediate) {
+      targetValue = targetAddress;
+    } else {
+      targetValue = this.readMemory(targetAddress);
+    }
+
+    this.X = targetValue;
+
+    if (this.isNegative(this.X)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.X === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (this.pageCrossed) {
+      cycles++;
+    }
+
+    return cycles;
+  }
+
+  ldy (mode) {
+    // Load Y register
+    this.PC++;
+    var cycles, targetAddress, targetValue;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+      case CPU6502.absoluteX:
+        cycles = 4;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+
+    if (mode === CPU6502.immediate) {
+      targetValue = targetAddress;
+    } else {
+      targetValue = this.readMemory(targetAddress);
+    }
+
+    this.Y = targetValue;
+
+    if (this.isNegative(this.Y)) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    if (this.Y === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (this.pageCrossed) {
+      cycles++;
+    }
+
+    return cycles;
+  }
+
+  lsr(mode) {
+    // Logical Shift Right
+    var cycles, targetAddress, targetValue, shiftedValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.accumulator:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 5;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+        cycles = 6;
+        break;
+      case CPU6502.absoluteX:
+        cycles = 7;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+    targetValue = this.readMemory(targetAddress);
+
+    if (mode == CPU6502.accumulator) {
+      targetValue = this.A;
+    }
+
+    shiftedValue = this.shiftRight(targetValue);
+
+    // Negative will never be set after LSR
+    this.clearFlag(CPU6502.negative);
+
+    if (targetValue & 0b00000001) {
+      this.setFlag(CPU6502.carry);
+    } else {
+      this.clearFlag(CPU6502.carry);
+    }
+
+    if (shiftedValue === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (mode == CPU6502.accumulator) {
+      this.A = shiftedValue;
+    } else {
+      this.memory[targetAddress] = shiftedValue;
+    }
+
+    return cycles;
+  }
+
+  adc (mode) {
+    // TODO ADC
+  }
+
+  sbc (mode) {
+    // TODO SBC
   }
 }
 
