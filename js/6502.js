@@ -328,8 +328,8 @@ class CPU6502 {
      * flag in the status set to one. */
     this.PC += 2;
     this.stackPushPC();
-    this.setFlag(CPU6502.break);
     this.stackPush(this.P);
+    this.setFlag(CPU6502.break);
     this.PC = this.read16Bits(this.interruptVector);
     return 7; // This instruction takes 7 cycles
   }
@@ -1661,11 +1661,150 @@ class CPU6502 {
   }
 
   adc (mode) {
-    // TODO ADC
+    // Add with Carry
+    var cycles, sum, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+      case CPU6502.absoluteX:
+      case CPU6502.absoluteY:
+        cycles = 4;
+        break;
+      case CPU6502.indirectX:
+        cycles = 6;
+        break;
+      case CPU6502.indirect_Y:
+        cycles = 5;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+
+    if (this.pageCrossed) {
+      cycles++;
+    }
+
+    if (mode == CPU6502.immediate) {
+      targetValue = targetAddress;
+    } else {
+      targetValue = this.readMemory(targetAddress);
+    }
+
+    sum = this.A + targetValue;
+
+    if ( this.isNegative(this.A) && (this.isNegative(targetValue)) && !(this.isNegative(sum)) ) {
+      this.setFlag(CPU6502.overflow);
+    } else if ( !this.isNegative(this.A) && !this.isNegative(targetValue) && this.isNegative(sum) ) {
+      this.setFlag(CPU6502.overflow);
+    } else {
+      this.clearFlag(CPU6502.overflow);
+    }
+
+    this.A = sum % 256;
+
+    if (sum > 255) {
+      this.setFlag(CPU6502.carry);
+    } else {
+      this.clearFlag(CPU6502.carry);
+    }
+
+    if (this.A === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (sum & 0b10000000) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    return cycles;
   }
 
   sbc (mode) {
-    // TODO SBC
+    // Subtract with Carry (Borrow)
+    var cycles, sum, targetAddress, targetValue;
+    this.PC++;
+
+    switch (mode) {
+      case CPU6502.immediate:
+        cycles = 2;
+        break;
+      case CPU6502.zeroPage:
+        cycles = 3;
+        break;
+      case CPU6502.zeroPageX:
+      case CPU6502.absolute:
+      case CPU6502.absoluteX:
+      case CPU6502.absoluteY:
+        cycles = 4;
+        break;
+      case CPU6502.indirectX:
+        cycles = 6;
+        break;
+      case CPU6502.indirect_Y:
+        cycles = 5;
+        break;
+    }
+
+    targetAddress = this.getAddress(mode);
+
+    if (this.pageCrossed) {
+      cycles++;
+    }
+
+    // For subtraction we just add the negation
+    if (mode == CPU6502.immediate) {
+      targetValue = this.invert(targetAddress);
+    } else {
+      targetValue = this.invert(this.readMemory(targetAddress));
+    }
+
+    sum = this.A + targetValue;
+
+    if ( this.isNegative(this.A) && (this.isNegative(targetValue)) && !(this.isNegative(sum)) ) {
+      this.setFlag(CPU6502.overflow);
+    } else if ( !this.isNegative(this.A) && !this.isNegative(targetValue) && this.isNegative(sum) ) {
+      this.setFlag(CPU6502.overflow);
+    } else {
+      this.clearFlag(CPU6502.overflow);
+    }
+
+    this.A = sum % 256;
+
+    if (sum > 255) {
+      this.setFlag(CPU6502.carry);
+    } else {
+      this.clearFlag(CPU6502.carry);
+    }
+
+    if (this.A === 0) {
+      this.setFlag(CPU6502.zero);
+    } else {
+      this.clearFlag(CPU6502.zero);
+    }
+
+    if (sum & 0b10000000) {
+      this.setFlag(CPU6502.negative);
+    } else {
+      this.clearFlag(CPU6502.negative);
+    }
+
+    return cycles;
+  }
+
+  invert (num) {
+    return (num ^ 0b11111111) % 256;
   }
 }
 
