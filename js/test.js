@@ -1726,7 +1726,94 @@ function testLSRop(cpu) {
   assertEqual(96, cpu.memory[0xF1]);
 }
 
+function testADCop(cpu) {
+  cpu.PC = 0;
+  cpu.A = 0b000000010;
+  cpu.memory[0x01] = 0b00000010;
+  assertEqual(2, cpu.adc(CPU6502.immediate));
+  assertEqual(4, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b11111110;
+  cpu.memory[0x01] = 0b00000001;
+  assertEqual(2, cpu.adc(CPU6502.immediate));
+  assertEqual(255, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(false, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b11111111;
+  cpu.memory[0x01] = 0b00000001;
+  assertEqual(2, cpu.adc(CPU6502.immediate));
+  assertEqual(0, cpu.A);
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(false, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b10000000;
+  cpu.memory[0x01] = 0b10000000;
+  assertEqual(2, cpu.adc(CPU6502.immediate));
+  assertEqual(0, cpu.A);
+  assertEqual(true, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b00000010;
+  cpu.X = 1;
+  cpu.write16Bits(1, 0x2020);
+  cpu.memory[0x2021] = 0b00000010;
+  assertEqual(4, cpu.adc(CPU6502.absoluteX));
+  assertEqual(4, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b00000010;
+  cpu.X = 1;
+  cpu.write16Bits(1, 0x20FF);
+  cpu.memory[0x2100] = 0b00000010;
+  assertEqual(5, cpu.adc(CPU6502.absoluteX));
+  assertEqual(4, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b01000000;
+  cpu.X = 1;
+  cpu.write16Bits(1, 0x20FF);
+  cpu.memory[0x2100] = 0b01000000;
+  assertEqual(5, cpu.adc(CPU6502.absoluteX));
+  assertEqual(128, cpu.A);
+  assertEqual(true, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testADCop(cpu);
+cpu.reset();
 testLSRop(cpu);
 cpu.reset();
 testLDYop(cpu);
