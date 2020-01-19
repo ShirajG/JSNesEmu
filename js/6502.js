@@ -3,6 +3,7 @@ class CPU6502 {
   registers = new Uint8Array(new ArrayBuffer(5));
   PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
   pageCrossed = false;
+  kill = false;
 
   constructor (memory) {
     this.memory = memory;
@@ -315,13 +316,25 @@ class CPU6502 {
         return this.tya();
       default:
         console.log("NO OP CODE FOUND!!!!!!!!!!!#$$!@#$!@#");
-        return;
+        return 1;
     }
   }
 
   run () {
     var opCode = this.memory[this.PC];
-    this.execute(opCode);
+    var cycles = this.execute(opCode);
+
+    while(cycles > 0) {
+      cycles--;
+    }
+
+    if (!this.kill) {
+      // Test code just to prevent infinite loop
+      if (Math.random() < 0.01) {
+        this.kill = true;
+      }
+      this.run();
+    }
   }
 
   reset () {
