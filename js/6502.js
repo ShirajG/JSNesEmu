@@ -4,6 +4,16 @@ class CPU6502 {
   PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
   pageCrossed = false;
 
+  shiftLeft(value) {
+    // 8 bit shift left
+    return (value << 1) % 0x100;
+  }
+
+  shiftRight(value) {
+    // 8 bit shift right
+    return (value >> 1) % 0x100;
+  }
+
   invert (num) {
     return (num ^ 0b11111111) % 256;
   }
@@ -131,10 +141,24 @@ class CPU6502 {
     return ((hiByte << 8 ) | loByte);
   }
 
-  runOp (opCode) {
+  execute (opCode) {
     switch (opCode) {
-      case 0x00:
-        return this.brk();
+      case 0x69:
+        return this.adc(CPU6502.immediate);
+      case 0x65:
+        return this.adc(CPU6502.zeroPage);
+      case 0x75:
+        return this.adc(CPU6502.zeroPageX);
+      case 0x6D:
+        return this.adc(CPU6502.absolute);
+      case 0x7D:
+        return this.adc(CPU6502.absoluteX);
+      case 0x79:
+        return this.adc(CPU6502.absoluteY);
+      case 0x61:
+        return this.adc(CPU6502.indirectX);
+      case 0x71:
+        return this.adc(CPU6502.indirect_Y);
       default:
         console.log("NO OP CODE");
         return;
@@ -142,8 +166,8 @@ class CPU6502 {
   }
 
   run () {
-    var op = this.memory[this.PC];
-    this.runOp(op);
+    var opCode = this.memory[this.PC];
+    this.execute(opCode);
   }
 
   isNegative (val) {
@@ -897,16 +921,6 @@ class CPU6502 {
     }
 
     return cycles;
-  }
-
-  shiftLeft(value) {
-    // 8 bit shift left
-    return (value << 1) % 0x100;
-  }
-
-  shiftRight(value) {
-    // 8 bit shift right
-    return (value >> 1) % 0x100;
   }
 
   asl(mode) {
