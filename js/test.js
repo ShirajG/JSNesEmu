@@ -1811,7 +1811,22 @@ function testADCop(cpu) {
   cpu.reset()
 }
 
+function testSBCop(cpu) {
+  cpu.PC = 0;
+  cpu.A = 0b000000010;
+  cpu.memory[0x01] = 0b00000010;
+  assertEqual(2, cpu.sbc(CPU6502.immediate));
+  assertEqual(0, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+}
+
 var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+testSBCop(cpu);
+cpu.reset();
 testADCop(cpu);
 cpu.reset();
 testLSRop(cpu);

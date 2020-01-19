@@ -4,6 +4,10 @@ class CPU6502 {
   PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
   pageCrossed = false;
 
+  invert (num) {
+    return (num ^ 0b11111111) % 256;
+  }
+
   setPageCrossing(bool) {
     if (bool) {
       this.pageCrossed = true;
@@ -1770,7 +1774,7 @@ class CPU6502 {
       targetValue = this.invert(this.readMemory(targetAddress));
     }
 
-    sum = this.A + targetValue;
+    sum = this.A + targetValue + 1;
 
     if ( this.isNegative(this.A) && (this.isNegative(targetValue)) && !(this.isNegative(sum)) ) {
       this.setFlag(CPU6502.overflow);
@@ -1801,10 +1805,6 @@ class CPU6502 {
     }
 
     return cycles;
-  }
-
-  invert (num) {
-    return (num ^ 0b11111111) % 256;
   }
 }
 
