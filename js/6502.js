@@ -185,7 +185,8 @@ class CPU6502 {
         return this.asl(CPU6502.absolute);
       case 0x1E:
         return this.asl(CPU6502.absoluteX);
-
+      case 0x90:
+        return this.bcc();
       default:
         console.log("NO OP CODE");
         return;
