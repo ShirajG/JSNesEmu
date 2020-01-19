@@ -1769,12 +1769,13 @@ class CPU6502 {
 
     // For subtraction we just add the negation
     if (mode == CPU6502.immediate) {
-      targetValue = this.invert(targetAddress);
+      targetValue = targetAddress;
     } else {
-      targetValue = this.invert(this.readMemory(targetAddress));
+      targetValue = this.readMemory(targetAddress);
     }
 
-    sum = this.A + targetValue + 1;
+    // Convert to twos complement addition
+    sum = this.A + (this.invert(targetValue) + 1);
 
     if ( this.isNegative(this.A) && (this.isNegative(targetValue)) && !(this.isNegative(sum)) ) {
       this.setFlag(CPU6502.overflow);

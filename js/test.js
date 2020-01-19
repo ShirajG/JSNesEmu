@@ -1728,7 +1728,7 @@ function testLSRop(cpu) {
 
 function testADCop(cpu) {
   cpu.PC = 0;
-  cpu.A = 0b000000010;
+  cpu.A = 0b00000010;
   cpu.memory[0x01] = 0b00000010;
   assertEqual(2, cpu.adc(CPU6502.immediate));
   assertEqual(4, cpu.A);
@@ -1813,7 +1813,7 @@ function testADCop(cpu) {
 
 function testSBCop(cpu) {
   cpu.PC = 0;
-  cpu.A = 0b000000010;
+  cpu.A = 0b00000010;
   cpu.memory[0x01] = 0b00000010;
   assertEqual(2, cpu.sbc(CPU6502.immediate));
   assertEqual(0, cpu.A);
@@ -1821,6 +1821,54 @@ function testSBCop(cpu) {
   assertEqual(false, cpu.flagIsSet(CPU6502.negative));
   assertEqual(true, cpu.flagIsSet(CPU6502.carry));
   assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b00000010;
+  cpu.memory[0x01] = 0b00000010;
+  assertEqual(2, cpu.sbc(CPU6502.immediate));
+  assertEqual(0, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b00000101; // 5
+  cpu.memory[0x01] = 0b00001010; // 10
+  assertEqual(2, cpu.sbc(CPU6502.immediate));
+  assertEqual(251, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
+  assertEqual(true, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(true, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(false, cpu.flagIsSet(CPU6502.carry));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b00000010;
+  cpu.X = 1;
+  cpu.write16Bits(1, 0x20FF);
+  cpu.memory[0x2100] = 0b00000010;
+  assertEqual(5, cpu.sbc(CPU6502.absoluteX));
+  assertEqual(0, cpu.A);
+  assertEqual(false, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(true, cpu.flagIsSet(CPU6502.zero));
+  cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0b11000000;
+  cpu.X = 1;
+  cpu.write16Bits(1, 0x20FF);
+  cpu.memory[0x2100] = 0b10100000;
+  assertEqual(5, cpu.sbc(CPU6502.absoluteX));
+  assertEqual(32, cpu.A);
+  assertEqual(true, cpu.flagIsSet(CPU6502.overflow));
+  assertEqual(false, cpu.flagIsSet(CPU6502.negative));
+  assertEqual(true, cpu.flagIsSet(CPU6502.carry));
+  assertEqual(false, cpu.flagIsSet(CPU6502.zero));
   cpu.reset()
 }
 
