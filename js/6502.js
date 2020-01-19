@@ -321,19 +321,22 @@ class CPU6502 {
   }
 
   run () {
-    var opCode = this.memory[this.PC];
-    var cycles = this.execute(opCode);
+    var opCode, cycles;
+    this.kill = false;
 
-    while(cycles > 0) {
-      cycles--;
-    }
-
-    if (!this.kill) {
-      // Test code just to prevent infinite loop
+    while(!this.kill) {
       if (Math.random() < 0.01) {
         this.kill = true;
       }
-      this.run();
+
+      if (cycles > 0) {
+        // Wait until cycles have passed for emulation coordination
+        cycles--;
+      } else {
+        // Fetch next operation and execute
+        opCode = this.memory[this.PC];
+        cycles = this.execute(opCode);
+      }
     }
   }
 
