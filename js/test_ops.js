@@ -1,10 +1,4 @@
 // Tests
-function assertEqual (expected, actual) {
-  if (expected !== actual) {
-    throw `Expected does not equal Actual, expected ${expected}, got ${actual}.`;
-  }
-};
-
 function testStackOperations (cpu) {
   cpu.stackPush(1);
   cpu.stackPush(2);
@@ -2013,6 +2007,6 @@ cpu.reset();
 (function(){
   var graf = document.createElement('p');
   graf.classList += " success";
-  graf.innerText = "All Tests passed";
+  graf.innerText = "All CPU Operation Tests passed";
   document.body.appendChild(graf);
 })()

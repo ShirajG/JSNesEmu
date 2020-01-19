@@ -4,141 +4,9 @@ class CPU6502 {
   PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
   pageCrossed = false;
 
-  shiftLeft(value) {
-    // 8 bit shift left
-    return (value << 1) % 0x100;
-  }
-
-  shiftRight(value) {
-    // 8 bit shift right
-    return (value >> 1) % 0x100;
-  }
-
-  invert (num) {
-    return (num ^ 0b11111111) % 256;
-  }
-
-  setPageCrossing(bool) {
-    if (bool) {
-      this.pageCrossed = true;
-    }
-  }
-
-  getAddress(mode) {
-    var address;
-    this.pageCrossed = false;
-    switch (mode) {
-      // Immediate mode gets handled in OP's
-      case CPU6502.immediate:
-      case CPU6502.zeroPage:
-        address = this.readMemory(this.PC);
-        this.PC++;
-        break;
-      case CPU6502.zeroPageX:
-        address = this.readMemory(this.PC);
-        /* Clamp to 8 byte values only */
-        address = (address + this.X) % 256;
-        this.PC += 2;
-        break;
-      case CPU6502.zeroPageY:
-        address = this.readMemory(this.PC);
-        /* Clamp to 8 byte values only */
-        address = (address + this.Y) % 256;
-        this.PC += 2;
-        break;
-      case CPU6502.absolute:
-        address = this.read16Bits(this.PC);
-        this.PC += 2;
-        break;
-      case CPU6502.absoluteX:
-        address = this.read16Bits(this.PC);
-        // Check for page crossing, will use an extra cycle if so
-        this.setPageCrossing(((address + this.X) & 0xFF00) != (address & 0xFF00));
-        /* Clamp to 16 bit values only */
-        address = (address + this.X) % 0x10000;
-        this.PC += 3;
-        break;
-      case CPU6502.absoluteY:
-        address = this.read16Bits(this.PC);
-        // Check for page crossing, will use an extra cycle if so
-        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
-        /* Clamp to 16 bit values only */
-        address = (address + this.Y) % 0x10000;
-        this.PC += 3;
-        break;
-      case CPU6502.indirect:
-        // Only used by JMP instruction
-        address = this.read16Bits(this.read16Bits(this.PC));
-        break;
-      case CPU6502.indirectX:
-        address = this.readMemory(this.PC);
-        address = (address + this.X) % 0x100;
-        address = this.read16Bits(address);
-        this.PC += 4;
-        break;
-      case CPU6502.indirect_Y:
-        address = this.read16Bits(this.readMemory(this.PC));
-        // Overflow detection logic here, results in an extra cycle
-        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
-        address = (address + this.Y) % 0x10000;
-        this.PC += 4;
-        break;
-      default:
-    }
-    return address;
-  }
-
-  readMemory(address) {
-    return this.memory[address];
-  }
-
-  stackPointer () {
-    return this.S + 0x0100;
-  }
-
-  stackPeek () {
-    return this.memory[this.stackPointer() + 1];
-  }
-
-  stackPeek16 () {
-    var loByte = this.memory[this.stackPointer() + 1];
-    var hiByte = this.memory[this.stackPointer() + 2];
-    return ((hiByte << 8) | loByte);
-  }
-
-  stackPush (val) {
-    this.memory[this.stackPointer()] = val;
-    this.S--;
-  }
-
-  stackPop () {
-    this.S++;
-    var val = this.memory[this.stackPointer()];
-    this.memory[this.stackPointer()] = 0;
-    return val;
-  }
-
-  stackPushPC () {
-    // This is a 2 part operation that always happens together.
-    // We need to push 2 8bit values to the stack so they can be
-    // rejoined later into a 16bit val
-
-    // Push the Hi Byte of PC
-    this.stackPush((this.PC & 0b1111111100000000) >> 8);
-    // Push Lo Byte
-    this.stackPush((this.PC & 0b0000000011111111));
-  }
-
-  stackPopPC () {
-    // This is a 2 part operation that always happens together.
-    // We need to pop 2 8bit values from the stack so they can be
-    // rejoined later into a 16bit val
-
-    // Push the Hi Byte of PC
-    var loByte = this.stackPop();
-    // Push Lo Byte
-    var hiByte = this.stackPop();
-    return ((hiByte << 8 ) | loByte);
+  constructor (memory) {
+    this.memory = memory;
+    this.reset();
   }
 
   execute (opCode) {
@@ -456,10 +324,6 @@ class CPU6502 {
     this.execute(opCode);
   }
 
-  isNegative (val) {
-    return val & 0b10000000;
-  }
-
   reset () {
     this.A = 0;
     this.X = 0;
@@ -468,13 +332,6 @@ class CPU6502 {
     this.S = 0xFD;
     this.P = 0x34;
     this.memory.fill(0x00);
-  }
-
-
-  printStack () {
-    for (var i = this.S; i <= 0xFF; i++) {
-      console.log(`Stack Address ${(0x0100 + i).toString(16)}`, this.memory[0x100 + i]);
-    }
   }
 
   set A(val) {
@@ -517,9 +374,151 @@ class CPU6502 {
     return this.registers[4];
   }
 
-  constructor (memory) {
-    this.memory = memory;
-    this.reset();
+  shiftLeft(value) {
+    // 8 bit shift left
+    return (value << 1) % 0x100;
+  }
+
+  shiftRight(value) {
+    // 8 bit shift right
+    return (value >> 1) % 0x100;
+  }
+
+  invert (num) {
+    return (num ^ 0b11111111) % 256;
+  }
+
+  setPageCrossing(bool) {
+    if (bool) {
+      this.pageCrossed = true;
+    }
+  }
+
+  getAddress(mode) {
+    var address;
+    this.pageCrossed = false;
+    switch (mode) {
+      // Immediate mode gets handled in OP's
+      case CPU6502.immediate:
+      case CPU6502.zeroPage:
+        address = this.readMemory(this.PC);
+        this.PC++;
+        break;
+      case CPU6502.zeroPageX:
+        address = this.readMemory(this.PC);
+        /* Clamp to 8 byte values only */
+        address = (address + this.X) % 256;
+        this.PC += 2;
+        break;
+      case CPU6502.zeroPageY:
+        address = this.readMemory(this.PC);
+        /* Clamp to 8 byte values only */
+        address = (address + this.Y) % 256;
+        this.PC += 2;
+        break;
+      case CPU6502.absolute:
+        address = this.read16Bits(this.PC);
+        this.PC += 2;
+        break;
+      case CPU6502.absoluteX:
+        address = this.read16Bits(this.PC);
+        // Check for page crossing, will use an extra cycle if so
+        this.setPageCrossing(((address + this.X) & 0xFF00) != (address & 0xFF00));
+        /* Clamp to 16 bit values only */
+        address = (address + this.X) % 0x10000;
+        this.PC += 3;
+        break;
+      case CPU6502.absoluteY:
+        address = this.read16Bits(this.PC);
+        // Check for page crossing, will use an extra cycle if so
+        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
+        /* Clamp to 16 bit values only */
+        address = (address + this.Y) % 0x10000;
+        this.PC += 3;
+        break;
+      case CPU6502.indirect:
+        // Only used by JMP instruction
+        address = this.read16Bits(this.read16Bits(this.PC));
+        break;
+      case CPU6502.indirectX:
+        address = this.readMemory(this.PC);
+        address = (address + this.X) % 0x100;
+        address = this.read16Bits(address);
+        this.PC += 4;
+        break;
+      case CPU6502.indirect_Y:
+        address = this.read16Bits(this.readMemory(this.PC));
+        // Overflow detection logic here, results in an extra cycle
+        this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
+        address = (address + this.Y) % 0x10000;
+        this.PC += 4;
+        break;
+      default:
+    }
+    return address;
+  }
+
+  readMemory(address) {
+    return this.memory[address];
+  }
+
+  stackPointer () {
+    return this.S + 0x0100;
+  }
+
+  stackPeek () {
+    return this.memory[this.stackPointer() + 1];
+  }
+
+  stackPeek16 () {
+    var loByte = this.memory[this.stackPointer() + 1];
+    var hiByte = this.memory[this.stackPointer() + 2];
+    return ((hiByte << 8) | loByte);
+  }
+
+  stackPush (val) {
+    this.memory[this.stackPointer()] = val;
+    this.S--;
+  }
+
+  stackPop () {
+    this.S++;
+    var val = this.memory[this.stackPointer()];
+    this.memory[this.stackPointer()] = 0;
+    return val;
+  }
+
+  stackPushPC () {
+    // This is a 2 part operation that always happens together.
+    // We need to push 2 8bit values to the stack so they can be
+    // rejoined later into a 16bit val
+
+    // Push the Hi Byte of PC
+    this.stackPush((this.PC & 0b1111111100000000) >> 8);
+    // Push Lo Byte
+    this.stackPush((this.PC & 0b0000000011111111));
+  }
+
+  stackPopPC () {
+    // This is a 2 part operation that always happens together.
+    // We need to pop 2 8bit values from the stack so they can be
+    // rejoined later into a 16bit val
+
+    // Push the Hi Byte of PC
+    var loByte = this.stackPop();
+    // Push Lo Byte
+    var hiByte = this.stackPop();
+    return ((hiByte << 8 ) | loByte);
+  }
+
+  isNegative (val) {
+    return val & 0b10000000;
+  }
+
+  printStack () {
+    for (var i = this.S; i <= 0xFF; i++) {
+      console.log(`Stack Address ${(0x0100 + i).toString(16)}`, this.memory[0x100 + i]);
+    }
   }
 
   printRegisters() {
