@@ -175,6 +175,17 @@ class CPU6502 {
         return this.and(CPU6502.indirectX);
       case 0x31:
         return this.and(CPU6502.indirect_Y);
+      case 0x0A:
+        return this.asl(CPU6502.immediate);
+      case 0x06:
+        return this.asl(CPU6502.zeroPage);
+      case 0x16:
+        return this.asl(CPU6502.zeroPageX);
+      case 0x0E:
+        return this.asl(CPU6502.absolute);
+      case 0x1E:
+        return this.asl(CPU6502.absoluteX);
+
       default:
         console.log("NO OP CODE");
         return;
