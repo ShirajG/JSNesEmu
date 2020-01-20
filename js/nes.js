@@ -9,6 +9,12 @@ class NES {
     this.cpu.connectMemory(this.cpuMem);
   }
 
+  loadTestMemory (mem) {
+    mem.forEach(function(val, i) {
+      this.cpuMem[i] = val;
+    }.bind(this));
+  }
+
   powerOn () {
     this.running = true;
     while (this.running) {
@@ -16,7 +22,7 @@ class NES {
     }
   }
 
-  tick() {
+  tick () {
     // Random kill for testing
     if (Math.random() < 0.01) {
       this.running = false;

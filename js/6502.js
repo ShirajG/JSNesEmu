@@ -322,14 +322,13 @@ class CPU6502 {
 
   tick () {
     var opCode;
-
-    console.log('CPU Tick');
     if (this.waitCycles > 0) {
       // Wait until cycles have passed for emulation coordination
       this.waitCycles--;
     } else {
       // Fetch next operation and execute
       opCode = this.memory[this.PC];
+      console.log("Running Opcode: ", opCode.toString(16));
       if (opCode) {
         this.waitCycles = this.execute(opCode);
       } else {
