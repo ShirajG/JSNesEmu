@@ -7,12 +7,18 @@ class NES {
     this.cpu = cpu;
     this.ppu = ppu;
     this.cpu.connectMemory(this.cpuMem);
+    this.cpu.bus = this;
+  }
+
+  kill () {
+    this.running = false;
+    console.log("Stopping emulation");
   }
 
   loadTestMemory (mem) {
-    mem.forEach(function(val, i) {
-      this.cpuMem[i] = val;
-    }.bind(this));
+    for(var key in mem) {
+      this.cpuMem[key] = mem[key];
+    }
   }
 
   powerOn () {
@@ -23,11 +29,6 @@ class NES {
   }
 
   tick () {
-    // Random kill for testing
-    if (Math.random() < 0.01) {
-      this.running = false;
-    }
-
     this.cycleCount++;
     this.ppu.tick();
     if (this.cycleCount % 3 == 0 ) {
