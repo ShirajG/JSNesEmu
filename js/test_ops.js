@@ -28,7 +28,6 @@ function testWriting16Bits(cpu) {
 
 function testBRKop(cpu) {
   var testVal = 0b1010101000001111
-  assertEqual(null, cpu.PC);
   cpu.write16Bits(cpu.interruptVector, testVal);
   cpu.brk();
   // cpu.printRegisters()

@@ -13,6 +13,57 @@ var ldaTest = {
   0x07: 0x0A, // 10
 }
 
+var cmpTest = {
+  0x00: 0xA9, // LDA imm
+  0x01: 0x05, // 5
+  0x02: 0xC5, // CMP zeropage
+  0x03: 0x0A,
+  0x0A: 0x05
+}
+
+var cmpTest2 = {
+  0x00: 0xA9, // LDA imm
+  0x01: 0x05, // 5
+  0x02: 0xC5, // CMP zeropage
+  0x03: 0x0A,
+  0x0A: 0x06
+}
+
+var jmpTest = {
+  0x00: 0xA9, // LDA imm
+  0x01: 0x05, // 5
+  0x02: 0xC5, // CMP zeropage
+  0x03: 0x0A,
+  0x04: 0xB0, // BCS
+  0x05: 0x0A,
+  0x0F: 0xA9, // LDA imm
+  0x10: 0xFF, // 255
+
+  0x0A: 0x05
+}
+
+nes.reset();
+nes.loadTestMemory(jmpTest);
+nes.powerOn();
+assertEqual(0xFF, nes.cpu.A);
+assertEqual(0, nes.cpu.getFlag(CPU6502.zero));
+assertEqual(0, nes.cpu.getFlag(CPU6502.zero));
+
+nes.reset();
+nes.loadTestMemory(cmpTest2);
+nes.powerOn();
+assertEqual(0x05, nes.cpu.A);
+assertEqual(0, nes.cpu.getFlag(CPU6502.zero));
+assertEqual(0, nes.cpu.getFlag(CPU6502.zero));
+
+nes.reset();
+nes.loadTestMemory(cmpTest);
+nes.powerOn();
+assertEqual(0x05, nes.cpu.A);
+assertEqual(1, nes.cpu.getFlag(CPU6502.zero));
+assertEqual(1, nes.cpu.getFlag(CPU6502.carry));
+
+nes.reset();
 nes.loadTestMemory(ldaTest);
 nes.powerOn();
 assertEqual(0x0A, nes.cpu.A);
