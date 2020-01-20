@@ -1803,6 +1803,14 @@ function testADCop(cpu) {
   assertEqual(false, cpu.flagIsSet(CPU6502.carry));
   assertEqual(false, cpu.flagIsSet(CPU6502.zero));
   cpu.reset()
+
+  cpu.PC = 0;
+  cpu.A = 0x02;
+  cpu.memory[1] = 0x02;
+  cpu.setFlag(CPU6502.carry);
+  cpu.adc(CPU6502.immediate);
+  assertEqual(5, cpu.A);
+  cpu.reset()
 }
 
 function testSBCop(cpu) {
