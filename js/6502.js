@@ -5,9 +5,14 @@ class CPU6502 {
   pageCrossed = false;
   kill = false;
   waitCycles = 0;
+  bus = null;
 
   connectMemory(memory) {
     this.memory = memory;
+  }
+
+  connectBus(bus) {
+    this.bus = bus;
   }
 
   execute (opCode) {
@@ -333,6 +338,7 @@ class CPU6502 {
         this.waitCycles = this.execute(opCode);
       } else {
         // BRK operation
+        this.bus.kill();
         this.waitCycles = 7;
       }
     }
@@ -642,9 +648,20 @@ class CPU6502 {
 
   getFlag(flag) {
     switch (flag) {
+      case CPU6502.carry:
+        return (this.P & (1));
+      case CPU6502.zero:
+        return (this.P & (1 << 1));
+      case CPU6502.interruptDisable:
+        return (this.P & (1 << 2));
+      case CPU6502.decimal:
+        return (this.P & (1 << 3));
       case CPU6502.break:
-        // Break flag is the 4th bit
-        return (this.P & (1 << 4))
+        return (this.P & (1 << 4));
+      case CPU6502.overflow:
+        return (this.P & (1 << 6));
+      case CPU6502.negative:
+        return (this.P & (1 << 7));
       default:
         return;
     }
@@ -2017,7 +2034,7 @@ class CPU6502 {
       targetValue = this.readMemory(targetAddress);
     }
 
-    sum = this.A + targetValue;
+    sum = this.A + targetValue + this.getFlag(CPU6502.carry);
 
     if ( this.isNegative(this.A) && (this.isNegative(targetValue)) && !(this.isNegative(sum)) ) {
       this.setFlag(CPU6502.overflow);
