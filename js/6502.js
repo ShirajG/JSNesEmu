@@ -651,17 +651,17 @@ class CPU6502 {
       case CPU6502.carry:
         return (this.P & (1));
       case CPU6502.zero:
-        return (this.P & (1 << 1));
+        return (this.P & (1 << 1)) >> 1;
       case CPU6502.interruptDisable:
-        return (this.P & (1 << 2));
+        return (this.P & (1 << 2)) >> 2;
       case CPU6502.decimal:
-        return (this.P & (1 << 3));
+        return (this.P & (1 << 3)) >> 3;
       case CPU6502.break:
-        return (this.P & (1 << 4));
+        return (this.P & (1 << 4)) >> 4;
       case CPU6502.overflow:
-        return (this.P & (1 << 6));
+        return (this.P & (1 << 6)) >> 6;
       case CPU6502.negative:
-        return (this.P & (1 << 7));
+        return (this.P & (1 << 7)) >> 7;
       default:
         return;
     }
