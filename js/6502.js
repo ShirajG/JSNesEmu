@@ -348,9 +348,9 @@ class CPU6502 {
     this.A = 0;
     this.X = 0;
     this.Y = 0;
-    this.PC = null;
+    this.PC = 0;
     this.S = 0xFD;
-    this.P = 0x34;
+    this.P = 0x34; // 00110100
     if (this.memory) {
       this.memory.fill(0x00);
     }
@@ -1356,7 +1356,7 @@ class CPU6502 {
       this.clearFlag(CPU6502.carry);
     }
 
-    if (this.A === targetValue) {
+    if (this.A == targetValue) {
       this.setFlag(CPU6502.zero);
     } else {
       this.clearFlag(CPU6502.zero);

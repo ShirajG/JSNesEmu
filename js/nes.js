@@ -21,6 +21,14 @@ class NES {
     }
   }
 
+  reset () {
+    this.cpu.reset();
+    this.cycleCount = 0;
+    this.running = false;
+    this.cpuMem = new Uint8Array(new ArrayBuffer(2048));
+    this.cpu.connectMemory(this.cpuMem);
+  }
+
   powerOn () {
     this.running = true;
     while (this.running) {
