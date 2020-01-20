@@ -1866,7 +1866,8 @@ function testSBCop(cpu) {
   cpu.reset()
 }
 
-var cpu = new CPU6502(new Uint8Array(new ArrayBuffer(65536)));
+var cpu = new CPU6502();
+cpu.connectMemory(new Uint8Array(new ArrayBuffer(65536)));
 testSBCop(cpu);
 cpu.reset();
 testADCop(cpu);

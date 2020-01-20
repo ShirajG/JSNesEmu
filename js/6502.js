@@ -5,9 +5,13 @@ class CPU6502 {
   pageCrossed = false;
   kill = false;
 
-  constructor (memory) {
-    this.memory = memory;
+  constructor () {
     this.reset();
+    this.memory = [];
+  }
+
+  connectMemory(memory) {
+    this.memory = memory;
   }
 
   execute (opCode) {
@@ -347,7 +351,9 @@ class CPU6502 {
     this.PC = null;
     this.S = 0xFD;
     this.P = 0x34;
-    this.memory.fill(0x00);
+    if (this.memory) {
+      this.memory.fill(0x00);
+    }
   }
 
   set A(val) {
