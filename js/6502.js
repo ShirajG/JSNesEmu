@@ -4,11 +4,7 @@ class CPU6502 {
   PC = 0; // Program Counter, This is a 16 bit value for addressing 64K of memory
   pageCrossed = false;
   kill = false;
-
-  constructor () {
-    this.reset();
-    this.memory = [];
-  }
+  waitCycles = 0;
 
   connectMemory(memory) {
     this.memory = memory;
@@ -324,22 +320,21 @@ class CPU6502 {
     }
   }
 
-  run () {
-    var opCode, cycles;
-    this.kill = false;
+  tick () {
+    var opCode;
 
-    while(!this.kill) {
-      if (Math.random() < 0.01) {
-        this.kill = true;
-      }
-
-      if (cycles > 0) {
-        // Wait until cycles have passed for emulation coordination
-        cycles--;
+    console.log('CPU Tick');
+    if (this.waitCycles > 0) {
+      // Wait until cycles have passed for emulation coordination
+      this.waitCycles--;
+    } else {
+      // Fetch next operation and execute
+      opCode = this.memory[this.PC];
+      if (opCode) {
+        this.waitCycles = this.execute(opCode);
       } else {
-        // Fetch next operation and execute
-        opCode = this.memory[this.PC];
-        cycles = this.execute(opCode);
+        // BRK operation
+        this.waitCycles = 7;
       }
     }
   }
@@ -2150,3 +2145,4 @@ CPU6502.absoluteY = Symbol('Absolute Y Mode');
 CPU6502.indirect = Symbol('Indirect Mode'); // only used by JMP
 CPU6502.indirectX = Symbol('Indirect X Mode');
 CPU6502.indirect_Y = Symbol('(Indirect), Y Mode');
+
