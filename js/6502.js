@@ -38,7 +38,7 @@ class CPU6502 {
                     'X:' + this.X,
                     'Y:' + this.Y,
                     'P:' + this.P,
-                    'SP:' + this.S)
+                    'SP:' + this.S.toString(16))
         break;
       case CPU6502.absoluteX:
         console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
@@ -1640,6 +1640,7 @@ class CPU6502 {
   jmp (mode) {
     // Jump PC to new address
     this.logOperation(mode, "JMP");
+    this.PC++;
     var targetAddress = this.getAddress(mode)
     this.PC = targetAddress;
 
