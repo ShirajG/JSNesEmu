@@ -10,23 +10,54 @@ class CPU6502 {
   logOperation(mode, name) {
     switch (mode) {
       case CPU6502.accumulator:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.immediate:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.zeroPage:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.zeroPageX:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.zeroPageY:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.relative:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.absolute:
+        console.log(this.PC.toString(16),
+                    this.memory[this.PC].toString(16),
+                    this.memory[this.PC + 1].toString(16),
+                    this.memory[this.PC + 2].toString(16),
+                    name,
+                    '$' + this.read16Bits(this.PC + 1).toString(16),
+                    'A:' + this.A,
+                    'X:' + this.X,
+                    'Y:' + this.Y,
+                    'P:' + this.P,
+                    'SP:' + this.S)
+        break;
       case CPU6502.absoluteX:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.absoluteY:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.indirect:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.indirectX:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       case CPU6502.indirect_Y:
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        break;
       default:
-        console.log(this.PC.toString(16), ( this.memory[this.PC] ).toString(16), name)
         break;
     }
-
-    console.log(this.PC.toString(16), ( this.memory[this.PC] ).toString(16))
   }
 
   connectMemory(memory) {
@@ -690,6 +721,7 @@ class CPU6502 {
   }
 
   brk () {
+    this.logOperation(null, "BRK");
     /* The BRK instruction forces the generation of an interrupt request.
      * The program counter and processor status are pushed on the stack then the
      * IRQ interrupt vector at $FFFE/F is loaded into the PC and the break
@@ -704,6 +736,7 @@ class CPU6502 {
 
   clc () {
     // Clear Carry Flag
+    this.logOperation(null, "CLC");
     this.PC++;
     this.clearFlag(CPU6502.carry);
     return 2; // Takes 2 cycles
@@ -711,6 +744,7 @@ class CPU6502 {
 
   cld () {
     // Clear Decimal Mode Flag
+    this.logOperation(null, "CLD");
     this.PC++;
     this.clearFlag(CPU6502.decimal);
     return 2; // Takes 2 cycles
@@ -718,6 +752,7 @@ class CPU6502 {
 
   cli () {
     // Clear Interrupt Flag
+    this.logOperation(null, "CLI");
     this.PC++;
     this.clearFlag(CPU6502.interruptDisable);
     return 2; // Takes 2 cycles
@@ -725,6 +760,7 @@ class CPU6502 {
 
   clv () {
     // Clear Overflow Flag
+    this.logOperation(null, "CLV");
     this.PC++;
     this.clearFlag(CPU6502.overflow);
     return 2; // Takes 2 cycles
@@ -732,6 +768,7 @@ class CPU6502 {
 
   dex () {
     // Decrement X register
+    this.logOperation(null, "DEX");
     this.PC++;
     this.X--;
     if (this.X == 0) {
@@ -749,6 +786,7 @@ class CPU6502 {
 
   dey () {
     // Decrement Y register
+    this.logOperation(null, "DEY");
     this.PC++;
     this.Y--;
     if (this.Y == 0) {
@@ -766,6 +804,7 @@ class CPU6502 {
 
   inx () {
     // Increment X register
+    this.logOperation(null, "INX");
     this.PC++;
     this.X++;
     if (this.X == 0) {
@@ -783,6 +822,7 @@ class CPU6502 {
 
   iny () {
     // Increment Y register
+    this.logOperation(null, "INY");
     this.PC++;
     this.Y++;
     if (this.Y == 0) {
@@ -800,12 +840,14 @@ class CPU6502 {
 
   nop () {
     // No Operation
+    this.logOperation(null, "NOP");
     this.PC++;
     return 2;
   }
 
   pha () {
     // Push Accumulator to Stack
+    this.logOperation(null, "PHA");
     this.PC++;
     this.stackPush(this.A);
     return 3;
@@ -813,6 +855,7 @@ class CPU6502 {
 
   php () {
     // Push Status to Stack
+    this.logOperation(null, "PHP");
     this.PC++;
     this.stackPush(this.P);
     return 3;
@@ -820,6 +863,7 @@ class CPU6502 {
 
   pla () {
     // Pop from Stack to register A
+    this.logOperation(null, "PLA");
     this.PC++;
     this.A = this.stackPop();
 
@@ -839,6 +883,7 @@ class CPU6502 {
 
   plp () {
     // Pull Status from Stack
+    this.logOperation(null, "PLP");
     this.PC++;
     this.P = this.stackPop();
     return 4;
@@ -846,6 +891,7 @@ class CPU6502 {
 
   rti () {
     // Return from Interrupt
+    this.logOperation(null, "RTI");
     this.P = this.stackPop();
     this.PC = this.stackPopPC();
     return 6;
@@ -853,6 +899,7 @@ class CPU6502 {
 
   rts () {
     //Return from subroutine
+    this.logOperation(null, "RTS");
     this.PC = this.stackPopPC();
     this.PC++;
     return 6;
@@ -860,6 +907,7 @@ class CPU6502 {
 
   sec () {
     // Set Carry flag
+    this.logOperation(null, "SEC");
     this.PC++;
     this.setFlag(CPU6502.carry);
     return 2;
@@ -867,6 +915,7 @@ class CPU6502 {
 
   sed () {
     // Set Decimal Flag
+    this.logOperation(null, "SED");
     this.PC++;
     this.setFlag(CPU6502.decimal);
     return 2;
@@ -874,6 +923,7 @@ class CPU6502 {
 
   sei () {
     // Set Interrupt Disable Flag
+    this.logOperation(null, "SEI");
     this.PC++;
     this.setFlag(CPU6502.interruptDisable);
     return 2;
@@ -881,6 +931,7 @@ class CPU6502 {
 
   tax () {
     // Transfer Accumulator to X
+    this.logOperation(null, "TAX");
     this.PC++;
     this.X = this.A;
     if(this.isNegative(this.X)) {
@@ -900,6 +951,7 @@ class CPU6502 {
 
   tay () {
     // Transfer Accumulator to Y
+    this.logOperation(null, "TAY");
     this.PC++;
     this.Y = this.A;
     if(this.isNegative(this.Y)) {
@@ -918,6 +970,7 @@ class CPU6502 {
 
   tsx () {
     // Transfer Stack Pointer to X
+    this.logOperation(null, "TSX");
     this.PC++;
     this.X = this.S;
     if(this.isNegative(this.X)) {
@@ -937,6 +990,7 @@ class CPU6502 {
 
   txa () {
     // Transfer X to Accumulator
+    this.logOperation(null, "TXA");
     this.PC++;
     this.A = this.X;
 
@@ -956,6 +1010,7 @@ class CPU6502 {
 
   txs () {
     // Transfer X to Stack Pointer register
+    this.logOperation(null, "TXS");
     this.PC++;
     this.S = this.X;
     return 2;
@@ -963,6 +1018,7 @@ class CPU6502 {
 
   tya () {
     // Transfer Y to Accumulator
+    this.logOperation(null, "TYA");
     this.PC++;
     this.A = this.Y;
 
@@ -982,6 +1038,7 @@ class CPU6502 {
 
   bcc () {
     // Branch if Carry Clear
+    this.logOperation(null, "BCC");
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
@@ -998,6 +1055,7 @@ class CPU6502 {
 
   bcs () {
     // Branch if Carry Set
+    this.logOperation(null, "BCS");
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
@@ -1014,6 +1072,7 @@ class CPU6502 {
 
   beq () {
     // Branch if Equal
+    this.logOperation(null, "BEQ");
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
@@ -1030,6 +1089,7 @@ class CPU6502 {
 
   bne () {
     // Branch if Not Equal
+    this.logOperation(null, "BNE");
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
@@ -1046,6 +1106,7 @@ class CPU6502 {
 
   bmi () {
     // Branch if Minus
+    this.logOperation(null, "BMI");
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
@@ -1062,6 +1123,7 @@ class CPU6502 {
 
   bpl () {
     // Branch if Plus
+    this.logOperation(null, "BPL");
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
@@ -1078,6 +1140,7 @@ class CPU6502 {
 
   bvc () {
     // Branch if Overflow Clear
+    this.logOperation(null, "BVC");
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
@@ -1094,6 +1157,7 @@ class CPU6502 {
 
   bvs () {
     // Branch if Overflow Set
+    this.logOperation(null, "BVS");
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
@@ -1110,6 +1174,7 @@ class CPU6502 {
 
   bit (mode) {
     // Bit test
+    this.logOperation(mode, "BIT");
     var cycles = 3;
     if (mode == CPU6502.absolute) {
       cycles += 1;
@@ -1141,6 +1206,7 @@ class CPU6502 {
 
   sta (mode) {
     // Store Accumulator to memory
+    this.logOperation(mode, "STA");
     var cycles;
     this.PC++;
 
@@ -1169,6 +1235,7 @@ class CPU6502 {
 
   stx(mode) {
     // Store X register to Address
+    this.logOperation(mode, "STX");
     var cycles;
     this.PC++;
 
@@ -1189,6 +1256,7 @@ class CPU6502 {
 
   sty(mode) {
     // Store Y register to Address
+    this.logOperation(mode, "STY");
     var cycles;
     this.PC++;
 
@@ -1209,6 +1277,7 @@ class CPU6502 {
 
   and(mode) {
     // Logical AND with Accumulator
+    this.logOperation(mode, "AND");
     var cycles;
     var targetAddress;
     this.PC++;
@@ -1265,6 +1334,7 @@ class CPU6502 {
 
   asl(mode) {
     // Arithmetic Shift Left
+    this.logOperation(mode, "ASL");
     var cycles, targetAddress, targetValue;
     this.PC++;
 
@@ -1336,6 +1406,7 @@ class CPU6502 {
 
   cmp(mode) {
     // Compare Memory to the Accumulator value
+    this.logOperation(mode, "CMP");
     var cycles, targetAddress, targetValue;
     this.PC++;
 
@@ -1396,6 +1467,7 @@ class CPU6502 {
 
   cpx (mode) {
     // Compare X register to memory address
+    this.logOperation(mode, "CPX");
     var cycles, targetAddress, targetValue;
     this.PC++;
 
@@ -1444,6 +1516,7 @@ class CPU6502 {
   cpy (mode) {
     // Compare Y register to memory address
     var cycles, targetAddress, targetValue;
+    this.logOperation(mode, "CPY");
     this.PC++;
 
     switch (mode) {
@@ -1489,6 +1562,7 @@ class CPU6502 {
   }
 
   dec (mode) {
+    this.logOperation(mode, "DEC");
     var cycles, targetAddress, targetValue;
     this.PC++;
 
@@ -1526,6 +1600,7 @@ class CPU6502 {
   }
 
   inc (mode) {
+    this.logOperation(mode, "INC");
     var cycles, targetAddress, targetValue;
     this.PC++;
 
@@ -1568,7 +1643,6 @@ class CPU6502 {
     var targetAddress = this.getAddress(mode)
     this.PC = targetAddress;
 
-
     switch (mode) {
       case CPU6502.absolute:
         return 3;
@@ -1579,6 +1653,7 @@ class CPU6502 {
 
   jsr (mode) {
     // Jump to subroutine
+    this.logOperation(mode, "JSR");
     var targetAddress = this.getAddress(mode);
     this.stackPushPC();
     this.PC = targetAddress;
@@ -1587,6 +1662,7 @@ class CPU6502 {
   }
 
   eor (mode) {
+    this.logOperation(mode, "EOR");
     var cycles, targetAddress, targetValue;
     this.PC++;
 
@@ -1641,6 +1717,7 @@ class CPU6502 {
   }
 
   ora (mode) {
+    this.logOperation(mode, "ORA");
     var cycles, targetAddress, targetValue;
     this.PC++;
 
@@ -1696,6 +1773,7 @@ class CPU6502 {
 
   rol (mode) {
     // Rotate Left
+    this.logOperation(mode, "ROL");
     this.PC++;
     var cycles, targetAddress, targetValue, oldCarryBit, newCarryBit, negativeBit, shiftedValue;
 
@@ -1756,6 +1834,7 @@ class CPU6502 {
 
   ror (mode) {
     // Rotate Right
+    this.logOperation(mode, "ROR");
     this.PC++;
     var cycles, targetAddress, targetValue, oldCarryBit, newCarryBit, shiftedValue;
 
@@ -1817,6 +1896,7 @@ class CPU6502 {
   }
 
   lda (mode) {
+    this.logOperation(mode, "LDA");
     this.PC++;
     var cycles, targetAddress, targetValue;
 
@@ -1872,6 +1952,7 @@ class CPU6502 {
 
   ldx (mode) {
     // Load X register
+    this.logOperation(mode, "LDX");
     this.PC++;
     var cycles, targetAddress, targetValue;
 
@@ -1920,6 +2001,7 @@ class CPU6502 {
 
   ldy (mode) {
     // Load Y register
+    this.logOperation(mode, "LDY");
     this.PC++;
     var cycles, targetAddress, targetValue;
 
@@ -1968,6 +2050,7 @@ class CPU6502 {
 
   lsr(mode) {
     // Logical Shift Right
+    this.logOperation(mode, "LSR");
     var cycles, targetAddress, targetValue, shiftedValue;
     this.PC++;
 
@@ -2022,6 +2105,7 @@ class CPU6502 {
 
   adc (mode) {
     // Add with Carry
+    this.logOperation(mode, "ADC");
     var cycles, sum, targetAddress, targetValue;
     this.PC++;
 
@@ -2093,6 +2177,7 @@ class CPU6502 {
 
   sbc (mode) {
     // Subtract with Carry (Borrow)
+    this.logOperation(mode, "SBC");
     var cycles, sum, targetAddress, targetValue;
     this.PC++;
 
