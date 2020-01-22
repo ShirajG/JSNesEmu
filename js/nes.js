@@ -1,13 +1,19 @@
 class NES {
-  constructor(cpu, ppu) {
+  constructor(cpu, ppu, cpuMem) {
     this.cycleCount = 0;
     this.running = false;
     // 2KB Internal RAM for CPU
-    this.cpuMem = new Uint8Array(new ArrayBuffer(2048));
+    // Can be passed in for testing
+    if (cpuMem) {
+      this.cpuMem = cpuMem;
+    } else {
+      this.cpuMem = new Uint8Array(new ArrayBuffer(2048));
+    }
     this.cpu = cpu;
     this.ppu = ppu;
     this.cpu.connectMemory(this.cpuMem);
     this.cpu.bus = this;
+    this.cpu.reset();
   }
 
   kill () {

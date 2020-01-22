@@ -14,13 +14,45 @@
   </style>
 </head>
 <body>
+  <input type="file" value="file" name="file" id="file"/>
+  <div id="list"></div>
 
   <script src="js/6502.js"></script>
   <script src="js/PPU.js"></script>
   <script src="js/nes.js"></script>
 
   <script src="js/assertions.js"></script>
-  <script src="js/test_ops.js"></script>
-  <script src="js/test_nes.js"></script>
+  <!-- <script src="js/test_ops.js"></script> -->
+  <!-- <script src="js/test_nes.js"></script> -->
+
+  <script charset="utf-8">
+    function handleFileSelect(e) {
+      var rom = e.target.files[0];
+      var reader = new FileReader();
+
+      // Closure to load the nestest ROM into NES RAM
+      reader.onload = function (e) {
+        var romData = new Uint8Array(e.target.result).slice(0x10, 0x4000);
+        var cpuMem = new Uint8Array(0xFFFF);
+        var cpu = new CPU6502();
+        var ppu = new PPU();
+        var testNES = new NES(cpu, ppu, cpuMem);
+        romData.forEach(function (val, i){
+          var j = 0x8000 + i;
+          var k = 0xC000 + i;
+          cpu.memory[j] = val;
+          cpu.memory[k] = val;
+        })
+        cpu.PC = 0xC000;
+        testNES.powerOn();
+        console.log("Running NESTEST");
+      }
+
+      // Read in the image file as a data URL.
+      reader.readAsArrayBuffer(rom);
+    }
+
+    document.getElementById('file').addEventListener('change', handleFileSelect, false);
+  </script>
 </body>
 </html>

@@ -7,6 +7,28 @@ class CPU6502 {
   waitCycles = 0;
   bus = null;
 
+  logOperation(mode, name) {
+    switch (mode) {
+      case CPU6502.accumulator:
+      case CPU6502.immediate:
+      case CPU6502.zeroPage:
+      case CPU6502.zeroPageX:
+      case CPU6502.zeroPageY:
+      case CPU6502.relative:
+      case CPU6502.absolute:
+      case CPU6502.absoluteX:
+      case CPU6502.absoluteY:
+      case CPU6502.indirect:
+      case CPU6502.indirectX:
+      case CPU6502.indirect_Y:
+      default:
+        console.log(this.PC.toString(16), ( this.memory[this.PC] ).toString(16), name)
+        break;
+    }
+
+    console.log(this.PC.toString(16), ( this.memory[this.PC] ).toString(16))
+  }
+
   connectMemory(memory) {
     this.memory = memory;
   }
@@ -333,13 +355,13 @@ class CPU6502 {
     } else {
       // Fetch next operation and execute
       opCode = this.memory[this.PC];
-      console.log("Running Opcode: ", opCode.toString(16));
+      // console.log("Running Opcode: ", opCode.toString(16));
       if (opCode) {
         this.waitCycles = this.execute(opCode);
       } else {
         // BRK operation
         this.bus.kill();
-        this.waitCycles = 7;
+        this.waitCycles = this.execute(0);
       }
     }
   }
@@ -1542,8 +1564,10 @@ class CPU6502 {
 
   jmp (mode) {
     // Jump PC to new address
+    this.logOperation(mode, "JMP");
     var targetAddress = this.getAddress(mode)
     this.PC = targetAddress;
+
 
     switch (mode) {
       case CPU6502.absolute:
@@ -2161,4 +2185,5 @@ CPU6502.absoluteY = Symbol('Absolute Y Mode');
 CPU6502.indirect = Symbol('Indirect Mode'); // only used by JMP
 CPU6502.indirectX = Symbol('Indirect X Mode');
 CPU6502.indirect_Y = Symbol('(Indirect), Y Mode');
+CPU6502.relative = Symbol('Relative Mode');
 

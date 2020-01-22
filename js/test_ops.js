@@ -195,7 +195,7 @@ function testRTIop(cpu) {
   cpu.stackPushPC();
   cpu.stackPush(0b01010101);
   cpu.rti();
-  cpu.printRegisters()
+  // cpu.printRegisters()
   assertEqual(0b01010101, cpu.P);
   assertEqual(0b1111111101010101, cpu.PC);
 }
