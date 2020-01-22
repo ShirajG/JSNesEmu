@@ -403,7 +403,7 @@ class CPU6502 {
     this.Y = 0;
     this.PC = 0;
     this.S = 0xFD;
-    this.P = 0x34; // 00110100
+    this.P = 0x18;
     if (this.memory) {
       this.memory.fill(0x00);
     }
