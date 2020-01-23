@@ -1130,16 +1130,19 @@ class CPU6502 {
   bmi () {
     // Branch if Minus
     this.logOperation(null, "BMI");
+    var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
-    var originalPC = this.PC;
     if (this.flagIsSet(CPU6502.negative)) {
       cycles += 1;
+      this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
         cycles += 2;
       }
+    } else {
+      this.PC++;
     }
     return cycles;
   }
