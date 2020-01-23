@@ -1050,16 +1050,19 @@ class CPU6502 {
   bcc () {
     // Branch if Carry Clear
     this.logOperation(null, "BCC");
+    var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
-    var originalPC = this.PC;
     if (!this.flagIsSet(CPU6502.carry)) {
       cycles += 1;
+      this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
         cycles += 2;
       }
+    } else {
+      this.PC++;
     }
     return cycles;
   }
@@ -1087,16 +1090,19 @@ class CPU6502 {
   beq () {
     // Branch if Equal
     this.logOperation(null, "BEQ");
+    var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
-    var originalPC = this.PC;
     if (this.flagIsSet(CPU6502.zero)) {
       cycles += 1;
+      this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
         cycles += 2;
       }
+    } else {
+      this.PC++;
     }
     return cycles;
   }
@@ -1104,16 +1110,19 @@ class CPU6502 {
   bne () {
     // Branch if Not Equal
     this.logOperation(null, "BNE");
+    var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
-    var originalPC = this.PC;
     if (!this.flagIsSet(CPU6502.zero)) {
       cycles += 1;
+      this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
         cycles += 2;
       }
+    } else {
+      this.PC++;
     }
     return cycles;
   }
@@ -1138,16 +1147,19 @@ class CPU6502 {
   bpl () {
     // Branch if Plus
     this.logOperation(null, "BPL");
+    var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
-    var originalPC = this.PC;
     if (!this.flagIsSet(CPU6502.negative)) {
       cycles += 1;
+      this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
         cycles += 2;
       }
+    } else {
+      this.PC++;
     }
     return cycles;
   }
@@ -1155,16 +1167,19 @@ class CPU6502 {
   bvc () {
     // Branch if Overflow Clear
     this.logOperation(null, "BVC");
+    var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
-    var originalPC = this.PC;
     if (!this.flagIsSet(CPU6502.overflow)) {
       cycles += 1;
+      this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
         cycles += 2;
       }
+    } else {
+      this.PC++;
     }
     return cycles;
   }
@@ -1172,16 +1187,19 @@ class CPU6502 {
   bvs () {
     // Branch if Overflow Set
     this.logOperation(null, "BVS");
+    var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
     var pcOffset = this.readMemory(this.PC);
-    var originalPC = this.PC;
     if (this.flagIsSet(CPU6502.overflow)) {
       cycles += 1;
+      this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
         cycles += 2;
       }
+    } else {
+      this.PC++;
     }
     return cycles;
   }
