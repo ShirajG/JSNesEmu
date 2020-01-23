@@ -8,6 +8,7 @@ class CPU6502 {
   bus = null;
 
   logOperation(mode, name) {
+    var registerString = `\t\t\t A: ${ this.A } X:  ${ this.X }, Y: ${ this.Y }, P:  ${ this.P.toString(2) }, SP: ${ this.S.toString(16) }`
     switch (mode) {
       case CPU6502.accumulator:
         console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
@@ -34,26 +35,22 @@ class CPU6502 {
                     this.memory[this.PC + 2].toString(16),
                     name,
                     '$' + this.read16Bits(this.PC + 1).toString(16),
-                    'A:' + this.A,
-                    'X:' + this.X,
-                    'Y:' + this.Y,
-                    'P:' + this.P.toString(2),
-                    'SP:' + this.S.toString(16))
+                    registerString)
         break;
       case CPU6502.absoluteX:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
         break;
       case CPU6502.absoluteY:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
         break;
       case CPU6502.indirect:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
         break;
       case CPU6502.indirectX:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
         break;
       case CPU6502.indirect_Y:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
         break;
       default:
         console.log(this.PC.toString(16),
@@ -61,11 +58,7 @@ class CPU6502 {
                     mode,
                     name,
                     '$' + this.read16Bits(this.PC + 1).toString(16),
-                    'A:' + this.A,
-                    'X:' + this.X,
-                    'Y:' + this.Y,
-                    'P:' + this.P.toString(2),
-                    'SP:' + this.S.toString(16));
+                    registerString)
         break;
     }
   }
@@ -123,29 +116,29 @@ class CPU6502 {
       case 0x1E:
         return this.asl(CPU6502.absoluteX);
       case 0x90:
-        return this.bcc();
+        return this.bcc(CPU6502.relative);
       case 0xB0:
-        return this.bcs();
+        return this.bcs(CPU6502.relative);
       case 0xF0:
-        return this.beq();
+        return this.beq(CPU6502.relative);
       case 0x24:
         return this.bit(CPU6502.zeroPage);
       case 0x2C:
         return this.bit(CPU6502.absolute);
       case 0x30:
-        return this.bmi();
+        return this.bmi(CPU6502.relative);
       case 0xD0:
-        return this.bne();
+        return this.bne(CPU6502.relative);
       case 0x10:
-        return this.bpl();
+        return this.bpl(CPU6502.relative);
       case 0x00:
         return this.brk();
       case 0x50:
-        return this.bvc();
+        return this.bvc(CPU6502.relative);
       case 0x70:
-        return this.bvs();
+        return this.bvs(CPU6502.relative);
       case 0x18:
-        return this.clc();
+        return this.clc(CPU6502.implied);
       case 0xD8:
         return this.cld();
       case 0x58:
@@ -273,7 +266,7 @@ class CPU6502 {
       case 0x5E:
         return this.lsr(CPU6502.absoluteX);
       case 0xEA:
-        return this.nop();
+        return this.nop(CPU6502.implied);
       case 0x09:
         return this.ora(CPU6502.immediate);
       case 0x05:
@@ -291,13 +284,13 @@ class CPU6502 {
       case 0x11:
         return this.ora(CPU6502.indirect_Y);
       case 0x48:
-        return this.pha();
+        return this.pha(CPU6502.implied);
       case 0x08:
-        return this.php();
+        return this.php(CPU6502.implied);
       case 0x68:
-        return this.pla();
+        return this.pla(CPU6502.implied);
       case 0x28:
-        return this.plp();
+        return this.plp(CPU6502.implied);
       case 0x2A:
         return this.rol(CPU6502.accumulator);
       case 0x26:
@@ -321,7 +314,7 @@ class CPU6502 {
       case 0x40:
         return this.rti();
       case 0x60:
-        return this.rts();
+        return this.rts(CPU6502.implied);
       case 0xE9:
         return this.sbc(CPU6502.immediate);
       case 0xE5:
@@ -339,11 +332,11 @@ class CPU6502 {
       case 0xF1:
         return this.sbc(CPU6502.indirect_Y);
       case 0x38:
-        return this.sec();
+        return this.sec(CPU6502.implied);
       case 0xF8:
-        return this.sed();
+        return this.sed(CPU6502.implied);
       case 0x78:
-        return this.sei();
+        return this.sei(CPU6502.implied);
       case 0x85:
         return this.sta(CPU6502.zeroPage);
       case 0x95:
@@ -605,7 +598,7 @@ class CPU6502 {
 
   printStack () {
     for (var i = this.S; i <= 0xFF; i++) {
-      console.log(`Stack Address ${(0x0100 + i).toString(16)}`, this.memory[0x100 + i]);
+      console.log(`Stack Address ${(0x0100 + i).toString(16)}`, this.memory[0x100 + i].toString(16));
     }
   }
 
@@ -747,9 +740,9 @@ class CPU6502 {
     return 7; // This instruction takes 7 cycles
   }
 
-  clc () {
+  clc (mode) {
     // Clear Carry Flag
-    this.logOperation(null, "CLC");
+    this.logOperation(mode, "CLC");
     this.PC++;
     this.clearFlag(CPU6502.carry);
     return 2; // Takes 2 cycles
@@ -851,34 +844,36 @@ class CPU6502 {
     return 2;
   }
 
-  nop () {
+  nop (mode) {
     // No Operation
-    this.logOperation(null, "NOP");
+    this.logOperation(mode, "NOP");
     this.PC++;
     return 2;
   }
 
-  pha () {
+  pha (mode) {
     // Push Accumulator to Stack
-    this.logOperation(null, "PHA");
+    this.logOperation(mode, "PHA");
     this.PC++;
     this.stackPush(this.A);
+    // this.printStack();
     return 3;
   }
 
-  php () {
+  php (mode) {
     // Push Status to Stack
-    this.logOperation(null, "PHP");
+    this.logOperation(mode, "PHP");
     this.PC++;
     this.stackPush(this.P);
     return 3;
   }
 
-  pla () {
+  pla (mode) {
     // Pop from Stack to register A
-    this.logOperation(null, "PLA");
+    this.logOperation(mode, "PLA");
     this.PC++;
     this.A = this.stackPop();
+    // this.printStack();
 
     if (this.A == 0) {
       this.setFlag(CPU6502.zero);
@@ -894,9 +889,9 @@ class CPU6502 {
     return 4;
   }
 
-  plp () {
+  plp (mode) {
     // Pull Status from Stack
-    this.logOperation(null, "PLP");
+    this.logOperation(mode, "PLP");
     this.PC++;
     this.P = this.stackPop();
     return 4;
@@ -910,32 +905,32 @@ class CPU6502 {
     return 6;
   }
 
-  rts () {
+  rts (mode) {
     //Return from subroutine
-    this.logOperation(null, "RTS");
+    this.logOperation(mode, "RTS");
     this.PC = this.stackPopPC();
     return 6;
   }
 
-  sec () {
+  sec (mode) {
     // Set Carry flag
-    this.logOperation(null, "SEC");
+    this.logOperation(mode, "SEC");
     this.PC++;
     this.setFlag(CPU6502.carry);
     return 2;
   }
 
-  sed () {
+  sed (mode) {
     // Set Decimal Flag
-    this.logOperation(null, "SED");
+    this.logOperation(mode, "SED");
     this.PC++;
     this.setFlag(CPU6502.decimal);
     return 2;
   }
 
-  sei () {
+  sei (mode) {
     // Set Interrupt Disable Flag
-    this.logOperation(null, "SEI");
+    this.logOperation(mode, "SEI");
     this.PC++;
     this.setFlag(CPU6502.interruptDisable);
     return 2;
@@ -1048,9 +1043,9 @@ class CPU6502 {
     return 2;
   }
 
-  bcc () {
+  bcc (mode) {
     // Branch if Carry Clear
-    this.logOperation(null, "BCC");
+    this.logOperation(mode, "BCC");
     var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
@@ -1068,9 +1063,9 @@ class CPU6502 {
     return cycles;
   }
 
-  bcs () {
+  bcs (mode) {
     // Branch if Carry Set
-    this.logOperation(null, "BCS");
+    this.logOperation(mode, "BCS");
     var cycles = 2;
     var originalPC = this.PC;
     this.PC++;
@@ -1088,9 +1083,9 @@ class CPU6502 {
     return cycles;
   }
 
-  beq () {
+  beq (mode) {
     // Branch if Equal
-    this.logOperation(null, "BEQ");
+    this.logOperation(mode, "BEQ");
     var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
@@ -1108,9 +1103,9 @@ class CPU6502 {
     return cycles;
   }
 
-  bne () {
+  bne (mode) {
     // Branch if Not Equal
-    this.logOperation(null, "BNE");
+    this.logOperation(mode, "BNE");
     var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
@@ -1148,9 +1143,9 @@ class CPU6502 {
     return cycles;
   }
 
-  bpl () {
+  bpl (mode) {
     // Branch if Plus
-    this.logOperation(null, "BPL");
+    this.logOperation(mode, "BPL");
     var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
@@ -1168,9 +1163,9 @@ class CPU6502 {
     return cycles;
   }
 
-  bvc () {
+  bvc (mode) {
     // Branch if Overflow Clear
-    this.logOperation(null, "BVC");
+    this.logOperation(mode, "BVC");
     var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
@@ -1188,9 +1183,9 @@ class CPU6502 {
     return cycles;
   }
 
-  bvs () {
+  bvs (mode) {
     // Branch if Overflow Set
-    this.logOperation(null, "BVS");
+    this.logOperation(mode, "BVS");
     var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
@@ -2299,6 +2294,7 @@ CPU6502.negative = Symbol('Negative Flag');
 /* Symbols for each Addressing Mode */
 CPU6502.accumulator = Symbol('Accumulator Mode');
 CPU6502.immediate = Symbol('Immediate Mode');
+CPU6502.implied = Symbol('Implied Mode');
 CPU6502.zeroPage = Symbol('Zero Page Mode');
 CPU6502.zeroPageX = Symbol('Zero Page X Mode');
 CPU6502.absolute = Symbol('Absolute Mode');
