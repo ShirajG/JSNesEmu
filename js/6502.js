@@ -914,7 +914,6 @@ class CPU6502 {
     //Return from subroutine
     this.logOperation(null, "RTS");
     this.PC = this.stackPopPC();
-    this.PC++;
     return 6;
   }
 
