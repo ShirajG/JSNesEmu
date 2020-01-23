@@ -575,6 +575,7 @@ class CPU6502 {
   }
 
   stackPushPC () {
+    console.log('=====> Pushing PC to stack: ' + this.PC.toString(16));
     // This is a 2 part operation that always happens together.
     // We need to push 2 8bit values to the stack so they can be
     // rejoined later into a 16bit val
@@ -594,6 +595,7 @@ class CPU6502 {
     var loByte = this.stackPop();
     // Push Lo Byte
     var hiByte = this.stackPop();
+    console.log('<===== Popping PC from stack: ' + ((hiByte << 8 ) | loByte).toString(16));
     return ((hiByte << 8 ) | loByte);
   }
 
