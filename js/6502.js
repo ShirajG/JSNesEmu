@@ -37,7 +37,7 @@ class CPU6502 {
                     'A:' + this.A,
                     'X:' + this.X,
                     'Y:' + this.Y,
-                    'P:' + this.P,
+                    'P:' + this.P.toString(2),
                     'SP:' + this.S.toString(16))
         break;
       case CPU6502.absoluteX:
@@ -56,6 +56,16 @@ class CPU6502 {
         console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
         break;
       default:
+        console.log(this.PC.toString(16),
+                    this.memory[this.PC].toString(16),
+                    mode,
+                    name,
+                    '$' + this.read16Bits(this.PC + 1).toString(16),
+                    'A:' + this.A,
+                    'X:' + this.X,
+                    'Y:' + this.Y,
+                    'P:' + this.P.toString(2),
+                    'SP:' + this.S.toString(16));
         break;
     }
   }
@@ -329,7 +339,7 @@ class CPU6502 {
       case 0xF1:
         return this.sbc(CPU6502.indirect_Y);
       case 0x38:
-        return this.sbc();
+        return this.sec();
       case 0xF8:
         return this.sed();
       case 0x78:
@@ -373,7 +383,8 @@ class CPU6502 {
       case 0x98:
         return this.tya();
       default:
-        console.log("NO OP CODE FOUND!!!!!!!!!!!#$$!@#$!@#");
+        console.log("NO OP CODE FOUND FOR "+ opCode.toString(16) +" !@#");
+        this.bus.kill();
         return 1;
     }
   }
@@ -1056,16 +1067,19 @@ class CPU6502 {
   bcs () {
     // Branch if Carry Set
     this.logOperation(null, "BCS");
-    this.PC++;
     var cycles = 2;
-    var pcOffset = this.readMemory(this.PC);
     var originalPC = this.PC;
+    this.PC++;
+    var pcOffset = this.readMemory(this.PC);
     if (this.flagIsSet(CPU6502.carry)) {
       cycles += 1;
+      this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
         cycles += 2;
       }
+    } else {
+      this.PC++;
     }
     return cycles;
   }
@@ -1655,10 +1669,10 @@ class CPU6502 {
   jsr (mode) {
     // Jump to subroutine
     this.logOperation(mode, "JSR");
+    this.PC++;
     var targetAddress = this.getAddress(mode);
     this.stackPushPC();
     this.PC = targetAddress;
-    // Only an absolute mode version of this exists
     return 6;
   }
 
