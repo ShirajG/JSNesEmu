@@ -908,7 +908,7 @@ class CPU6502 {
   rts (mode) {
     //Return from subroutine
     this.logOperation(mode, "RTS");
-    this.PC = this.stackPopPC();
+    this.PC = this.stackPopPC() + 1;
     return 6;
   }
 
@@ -1688,6 +1688,7 @@ class CPU6502 {
     this.logOperation(mode, "JSR");
     this.PC++;
     var targetAddress = this.getAddress(mode);
+    this.PC--;
     this.stackPushPC();
     this.PC = targetAddress;
     return 6;
