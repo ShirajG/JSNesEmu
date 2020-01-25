@@ -6,61 +6,61 @@ class CPU6502 {
   kill = false;
   waitCycles = 0;
   bus = null;
+  cycleCount = 7; // 7 since we start with a BRK
+  loggedOpCount = 0;
 
   logOperation(mode, name) {
-    var registerString = `\t\t\t A: ${ this.A } X:  ${ this.X }, Y: ${ this.Y }, P:  ${ this.P.toString(2) }, SP: ${ this.S.toString(16) }`
+    var currentPCString = `> ${this.PC.toString(16).toUpperCase()} `;
+    var registerString = `\t\t\t\t\t    A:${ this.A } X:${ this.X } Y:${ this.Y } P: ${ this.P.toString(16) } SP: ${ this.S.toString(16) } CYC: ${ this.cycleCount }`
+    var memoryString = `${this.memory[this.PC].toString(16).toUpperCase()}`;
+
     switch (mode) {
       case CPU6502.accumulator:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        memoryString += ` TBD ACC `
         break;
       case CPU6502.immediate:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        memoryString += ` ${this.memory[this.PC + 1].toString(16).toUpperCase()} \t\t${name} #$${this.memory[ this.PC + 1 ].toString(16).toUpperCase()}`
         break;
       case CPU6502.zeroPage:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        memoryString += ` ${this.memory[this.PC + 1].toString(16).toUpperCase()} \t\t ${name} $${this.memory[ this.PC + 1 ].toString(16).toUpperCase() } = ${this.X}`
         break;
       case CPU6502.zeroPageX:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        memoryString += ` TBD ZPX `
         break;
       case CPU6502.zeroPageY:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        memoryString += ` TBD ZPY `
         break;
       case CPU6502.relative:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name);
+        memoryString += ` ${this.memory[this.PC + 1].toString(16).toUpperCase()} \t\t${name} $${(this.memory[ this.PC + 1 ] + this.PC + 2).toString(16).toUpperCase()}`
         break;
       case CPU6502.absolute:
-        console.log(this.PC.toString(16),
-                    this.memory[this.PC].toString(16),
-                    this.memory[this.PC + 1].toString(16),
-                    this.memory[this.PC + 2].toString(16),
-                    name,
-                    '$' + this.read16Bits(this.PC + 1).toString(16),
-                    registerString)
+        memoryString += ` ${this.memory[this.PC + 1].toString(16).toUpperCase()} ${this.memory[this.PC + 2].toString(16).toUpperCase()}  ${name} $${this.read16Bits(this.PC + 1).toString(16).toUpperCase()}`
         break;
       case CPU6502.absoluteX:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
+        memoryString += ` TBD ABX `
         break;
       case CPU6502.absoluteY:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
+        memoryString += ` TBD ABY `
+        break;
+      case CPU6502.implied:
+        memoryString += ` \t\t\t${name}`
         break;
       case CPU6502.indirect:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
+        memoryString += ` TBD ID `
         break;
       case CPU6502.indirectX:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
+        memoryString += ` TBD IDX `
         break;
       case CPU6502.indirect_Y:
-        console.log(this.PC.toString(16), this.memory[this.PC].toString(16), mode, name, registerString);
+        memoryString += ` TBD IDY `
         break;
       default:
-        console.log(this.PC.toString(16),
-                    this.memory[this.PC].toString(16),
-                    mode,
-                    name,
-                    '$' + this.read16Bits(this.PC + 1).toString(16),
-                    registerString)
+        memoryString += ` TBD ??? `
         break;
     }
+    console.warn(testLog[this.loggedOpCount]);
+    console.log(currentPCString, memoryString, registerString);
+    this.loggedOpCount++;
   }
 
   connectMemory(memory) {
@@ -393,10 +393,12 @@ class CPU6502 {
       // console.log("Running Opcode: ", opCode.toString(16));
       if (opCode) {
         this.waitCycles = this.execute(opCode);
+        this.cycleCount += this.waitCycles;
       } else {
         // BRK operation
         this.bus.kill();
         this.waitCycles = this.execute(0);
+        this.cycleCount += this.waitCycles;
       }
     }
   }
@@ -407,7 +409,7 @@ class CPU6502 {
     this.Y = 0;
     this.PC = 0;
     this.S = 0xFD;
-    this.P = 0x18;
+    this.P = 0x24;
     if (this.memory) {
       this.memory.fill(0x00);
     }
@@ -568,7 +570,6 @@ class CPU6502 {
   }
 
   stackPushPC () {
-    console.log('=====> Pushing PC to stack: ' + this.PC.toString(16));
     // This is a 2 part operation that always happens together.
     // We need to push 2 8bit values to the stack so they can be
     // rejoined later into a 16bit val
@@ -588,7 +589,6 @@ class CPU6502 {
     var loByte = this.stackPop();
     // Push Lo Byte
     var hiByte = this.stackPop();
-    console.log('<===== Popping PC from stack: ' + ((hiByte << 8 ) | loByte).toString(16));
     return ((hiByte << 8 ) | loByte);
   }
 
