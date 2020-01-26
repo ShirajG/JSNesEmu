@@ -2231,7 +2231,7 @@ class CPU6502 {
   sbc (mode) {
     // Subtract with Carry (Borrow)
     this.logOperation(mode, "SBC");
-    var cycles, sum, targetAddress, targetValue;
+    var cycles, sum, targetAddress, targetValue, twosComplement;
     this.PC++;
 
     switch (mode) {
@@ -2268,36 +2268,50 @@ class CPU6502 {
       targetValue = this.readMemory(targetAddress);
     }
 
-    // Convert to twos complement addition
-    sum = this.A + (this.invert(targetValue) + 1);
+    // console.log("SBC==================================");
 
-    if ( this.isNegative(this.A) && (this.isNegative(targetValue)) && !(this.isNegative(sum)) ) {
+    // Convert to twos complement addition
+    twosComplement = (this.invert(targetValue) + this.getFlag(CPU6502.carry));
+    sum = this.A + twosComplement;
+
+    // console.log(this.A + " - ", targetValue, " = ", sum);
+
+    if ( this.isNegative(this.A) && this.isNegative(twosComplement) && !(this.isNegative(sum)) ) {
+      // console.log("Setting Overflow");
       this.setFlag(CPU6502.overflow);
-    } else if ( !this.isNegative(this.A) && !this.isNegative(targetValue) && this.isNegative(sum) ) {
+    } else if ( !this.isNegative(this.A) && !this.isNegative(twosComplement) && this.isNegative(sum) ) {
       this.setFlag(CPU6502.overflow);
     } else {
+      // console.log("UnSetting Overflow");
       this.clearFlag(CPU6502.overflow);
     }
 
     this.A = sum % 256;
 
-    if (sum > 255) {
+    if ( sum > 255 ) {
+      // console.log("Setting Carry");
       this.setFlag(CPU6502.carry);
     } else {
+      // console.log("UnSetting Carry");
       this.clearFlag(CPU6502.carry);
     }
 
     if (this.A === 0) {
+      // console.log("Setting Zero");
       this.setFlag(CPU6502.zero);
     } else {
+      // console.log("UnSetting Zero");
       this.clearFlag(CPU6502.zero);
     }
 
     if (sum & 0b10000000) {
+      // console.log("Setting Negative");
       this.setFlag(CPU6502.negative);
     } else {
+      // console.log("UnSetting Negative");
       this.clearFlag(CPU6502.negative);
     }
+    // console.log("==================================SBC");
 
     return cycles;
   }
