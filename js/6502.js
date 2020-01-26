@@ -38,7 +38,7 @@ class CPU6502 {
         memoryString += ` ${zeroPad(this.memory[this.PC + 1])} \t${name} $${(this.memory[ this.PC + 1 ] + this.PC + 2).toString(16).toUpperCase()}`
         break;
       case CPU6502.absolute:
-        memoryString += ` ${zeroPad(this.memory[this.PC + 1])} ${this.memory[this.PC + 2].toString(16).toUpperCase()}  ${name} $${this.read16Bits(this.PC + 1).toString(16).toUpperCase()}`
+        memoryString += ` ${zeroPad(this.memory[this.PC + 1])} ${this.memory[this.PC + 2].toString(16).toUpperCase()}  ${name} $${this.read16Bits(this.PC + 1).toString(16).toUpperCase()} = ${this.read16Bits(this.read16Bits(this.PC + 1)).toString(16).toUpperCase()}`
         break;
       case CPU6502.absoluteX:
         memoryString += ` TBD ABX `
@@ -569,7 +569,7 @@ class CPU6502 {
   stackPop () {
     this.S++;
     var val = this.memory[this.stackPointer()];
-    this.memory[this.stackPointer()] = 0;
+    // this.memory[this.stackPointer()] = 0;
     return val;
   }
 
@@ -864,7 +864,6 @@ class CPU6502 {
     this.logOperation(mode, "PHA");
     this.PC++;
     this.stackPush(this.A);
-    // this.printStack();
     return 3;
   }
 
@@ -881,7 +880,6 @@ class CPU6502 {
     this.logOperation(mode, "PLA");
     this.PC++;
     this.A = this.stackPop();
-    // this.printStack();
 
     if (this.A == 0) {
       this.setFlag(CPU6502.zero);
@@ -1274,6 +1272,7 @@ class CPU6502 {
 
     var targetAddress = this.getAddress(mode);
     this.memory[targetAddress] = this.A;
+    console.log(`STA ${targetAddress}============================`);
     return cycles;
   }
 
@@ -1294,6 +1293,7 @@ class CPU6502 {
     }
 
     var targetAddress = this.getAddress(mode);
+    console.log(`STX ${targetAddress}===========================================`);
     this.memory[targetAddress] = this.X;
     return cycles;
   }
@@ -1316,6 +1316,7 @@ class CPU6502 {
 
     var targetAddress = this.getAddress(mode);
     this.memory[targetAddress] = this.Y;
+    console.log(`STY ${targetAddress}================================`);
     return cycles;
   }
 
