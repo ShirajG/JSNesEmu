@@ -1550,14 +1550,13 @@ class CPU6502 {
       this.clearFlag(CPU6502.carry);
     }
 
-    if (this.X === targetValue) {
+    if (this.X == targetValue) {
       this.setFlag(CPU6502.zero);
     } else {
       this.clearFlag(CPU6502.zero);
     }
 
-    // Limit subraction to 8 bits
-    if (this.isNegative(Math.abs((this.X - targetValue) % 0x100))) {
+    if ((this.X - targetValue) & 0b10000000) {
       this.setFlag(CPU6502.negative);
     } else {
       this.clearFlag(CPU6502.negative);
