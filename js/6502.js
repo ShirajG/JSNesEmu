@@ -1487,25 +1487,34 @@ class CPU6502 {
       targetValue = cpu.readMemory(targetAddress);
     }
 
+    // console.log("-------------------------------------------");
+    // console.log(`Comparing A:${this.A} to ${targetValue}`);
+
     if (this.A >= targetValue) {
       this.setFlag(CPU6502.carry);
+      // console.log("Is GTE/Carry");
     } else {
       this.clearFlag(CPU6502.carry);
+      // console.log("Is Not GTE/Carry");
     }
 
     if (this.A == targetValue) {
       this.setFlag(CPU6502.zero);
+      // console.log("Is Equal/Zero");
     } else {
       this.clearFlag(CPU6502.zero);
+      // console.log("Is Not Equal/Zero");
     }
 
-    // Limit subraction to 8 bits
-    if (this.isNegative(Math.abs((this.A - targetValue) % 0x100))) {
+    if (( this.A - targetValue ) & 0b10000000) {
       this.setFlag(CPU6502.negative);
+      // console.log("Is Negative");
     } else {
       this.clearFlag(CPU6502.negative);
+      // console.log("Not Negative");
     }
 
+    // console.log("-------------------------------------------");
     return cycles;
   }
 
@@ -1589,14 +1598,13 @@ class CPU6502 {
       this.clearFlag(CPU6502.carry);
     }
 
-    if (this.Y === targetValue) {
+    if (this.Y == targetValue) {
       this.setFlag(CPU6502.zero);
     } else {
       this.clearFlag(CPU6502.zero);
     }
 
-    // Limit subraction to 8 bits
-    if (this.isNegative(Math.abs((this.Y - targetValue) % 0x100))) {
+    if ((this.Y - targetValue) & 0b10000000) {
       this.setFlag(CPU6502.negative);
     } else {
       this.clearFlag(CPU6502.negative);
