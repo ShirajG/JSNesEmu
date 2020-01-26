@@ -601,8 +601,12 @@ class CPU6502 {
   }
 
   printStack () {
+    var firstLine = "=>";
     for (var i = this.S; i <= 0xFF; i++) {
-      console.log(`Stack Address ${(0x0100 + i).toString(16)}`, this.memory[0x100 + i].toString(16));
+      if (i != this.S) {
+        firstLine = "  ";
+      }
+      console.log(`${firstLine} ${(0x0100 + i).toString(16)}`, this.memory[0x100 + i].toString(16));
     }
   }
 
@@ -896,9 +900,13 @@ class CPU6502 {
 
   plp (mode) {
     // Pull Status from Stack
+    // Unset break flag when doing so:
+    // https://wiki.nesdev.com/w/index.php/Status_flags#The_B_flag
+    // Always set bit 5, for parity with testing log
+    // http://forums.nesdev.com/viewtopic.php?f=3&t=11253&p=128876&hilit=plp#p128876
     this.logOperation(mode, "PLP");
     this.PC++;
-    this.P = this.stackPop();
+    this.P = ( this.stackPop() & 0b11101111 ) | 0b00100000;
     return 4;
   }
 
