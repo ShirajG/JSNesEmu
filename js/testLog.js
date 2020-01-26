@@ -51,7 +51,7 @@ C7A3  EA        NOP                             A:00 X:00 Y:00 P:26 SP:FB PPU: 1
 C7A4  24 01     BIT $01 = 00                    A:00 X:00 Y:00 P:26 SP:FB PPU: 25,  1 CYC:129\n\
 C7A6  70 03     BVS $C7AB                       A:00 X:00 Y:00 P:26 SP:FB PPU: 34,  1 CYC:132\n\
 C7A8  4C AF C7  JMP $C7AF                       A:00 X:00 Y:00 P:26 SP:FB PPU: 40,  1 CYC:134\n\
-C7AF  EA        NOP                             A:00dfsfasfsdfX:00 Y:00 P:26 SP:FB PPU: 49,  1 CYC:137\n\
+C7AF  EA        NOP                             A:00 X:00 Y:00 P:26 SP:FB PPU: 49,  1 CYC:137\n\
 C7B0  A9 00     LDA #$00                        A:00 X:00 Y:00 P:26 SP:FB PPU: 55,  1 CYC:139\n\
 C7B2  10 04     BPL $C7B8                       A:00 X:00 Y:00 P:26 SP:FB PPU: 61,  1 CYC:141\n\
 C7B8  EA        NOP                             A:00 X:00 Y:00 P:26 SP:FB PPU: 70,  1 CYC:144\n\

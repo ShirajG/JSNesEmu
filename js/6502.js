@@ -1,3 +1,7 @@
+function zeroPad (num) {
+  return ('00' + (num).toString(16)).slice(-2).toUpperCase();
+}
+
 class CPU6502 {
   interruptVector = 0xFFFE; // 0xFFFE and 0xFFFF will store a 16 bit address to jump to on interrupt
   registers = new Uint8Array(new ArrayBuffer(5));
@@ -10,19 +14,19 @@ class CPU6502 {
   loggedOpCount = 0;
 
   logOperation(mode, name) {
-    var currentPCString = `> ${this.PC.toString(16).toUpperCase()} `;
-    var registerString = `\t\t\t\t\t    A:${ this.A } X:${ this.X } Y:${ this.Y } P: ${ this.P.toString(16) } SP: ${ this.S.toString(16) } CYC: ${ this.cycleCount }`
-    var memoryString = `${this.memory[this.PC].toString(16).toUpperCase()}`;
+    var currentPCString = `${this.PC.toString(16).toUpperCase()} `;
+    var registerString = `\t\t\tA:${ zeroPad(this.A) } X:${ zeroPad(this.X) } Y:${ zeroPad(this.Y) } P:${ zeroPad(this.P) } SP:${ this.S.toString(16).toUpperCase() }             CYC:${ this.cycleCount }`
+    var memoryString = `${zeroPad(this.memory[this.PC])}`;
 
     switch (mode) {
       case CPU6502.accumulator:
         memoryString += ` TBD ACC `
         break;
       case CPU6502.immediate:
-        memoryString += ` ${this.memory[this.PC + 1].toString(16).toUpperCase()} \t\t${name} #$${this.memory[ this.PC + 1 ].toString(16).toUpperCase()}`
+        memoryString += ` ${zeroPad(this.memory[this.PC + 1])} \t${name} #$${this.memory[ this.PC + 1 ].toString(16).toUpperCase()}`
         break;
       case CPU6502.zeroPage:
-        memoryString += ` ${this.memory[this.PC + 1].toString(16).toUpperCase()} \t\t ${name} $${this.memory[ this.PC + 1 ].toString(16).toUpperCase() } = ${this.X}`
+        memoryString += ` ${zeroPad(this.memory[this.PC + 1])} \t${name} $${this.memory[ this.PC + 1 ].toString(16).toUpperCase() } = ${this.X}`
         break;
       case CPU6502.zeroPageX:
         memoryString += ` TBD ZPX `
@@ -31,10 +35,10 @@ class CPU6502 {
         memoryString += ` TBD ZPY `
         break;
       case CPU6502.relative:
-        memoryString += ` ${this.memory[this.PC + 1].toString(16).toUpperCase()} \t\t${name} $${(this.memory[ this.PC + 1 ] + this.PC + 2).toString(16).toUpperCase()}`
+        memoryString += ` ${zeroPad(this.memory[this.PC + 1])} \t${name} $${(this.memory[ this.PC + 1 ] + this.PC + 2).toString(16).toUpperCase()}`
         break;
       case CPU6502.absolute:
-        memoryString += ` ${this.memory[this.PC + 1].toString(16).toUpperCase()} ${this.memory[this.PC + 2].toString(16).toUpperCase()}  ${name} $${this.read16Bits(this.PC + 1).toString(16).toUpperCase()}`
+        memoryString += ` ${zeroPad(this.memory[this.PC + 1])} ${this.memory[this.PC + 2].toString(16).toUpperCase()}  ${name} $${this.read16Bits(this.PC + 1).toString(16).toUpperCase()}`
         break;
       case CPU6502.absoluteX:
         memoryString += ` TBD ABX `
@@ -43,7 +47,7 @@ class CPU6502 {
         memoryString += ` TBD ABY `
         break;
       case CPU6502.implied:
-        memoryString += ` \t\t\t${name}`
+        memoryString += `\t${name}\t`
         break;
       case CPU6502.indirect:
         memoryString += ` TBD ID `
@@ -140,11 +144,11 @@ class CPU6502 {
       case 0x18:
         return this.clc(CPU6502.implied);
       case 0xD8:
-        return this.cld();
+        return this.cld(CPU6502.implied);
       case 0x58:
         return this.cli();
       case 0xB8:
-        return this.clv();
+        return this.clv(CPU6502.implied);
       case 0xC9:
         return this.cmp(CPU6502.immediate);
       case 0xC5:
@@ -212,7 +216,7 @@ class CPU6502 {
       case 0xE8:
         return this.inx();
       case 0xC8:
-        return this.iny();
+        return this.iny(CPU6502.implied);
       case 0x4C:
         return this.jmp(CPU6502.absolute);
       case 0x6C:
@@ -748,9 +752,9 @@ class CPU6502 {
     return 2; // Takes 2 cycles
   }
 
-  cld () {
+  cld (mode) {
     // Clear Decimal Mode Flag
-    this.logOperation(null, "CLD");
+    this.logOperation(mode, "CLD");
     this.PC++;
     this.clearFlag(CPU6502.decimal);
     return 2; // Takes 2 cycles
@@ -764,9 +768,9 @@ class CPU6502 {
     return 2; // Takes 2 cycles
   }
 
-  clv () {
+  clv (mode) {
     // Clear Overflow Flag
-    this.logOperation(null, "CLV");
+    this.logOperation(mode, "CLV");
     this.PC++;
     this.clearFlag(CPU6502.overflow);
     return 2; // Takes 2 cycles
@@ -826,9 +830,9 @@ class CPU6502 {
     return 2;
   }
 
-  iny () {
+  iny (mode) {
     // Increment Y register
-    this.logOperation(null, "INY");
+    this.logOperation(mode, "INY");
     this.PC++;
     this.Y++;
     if (this.Y == 0) {
@@ -880,6 +884,7 @@ class CPU6502 {
     } else {
       this.clearFlag(CPU6502.zero);
     }
+
     if (this.isNegative(this.A)) {
       this.setFlag(CPU6502.negative);
     } else {
@@ -1123,9 +1128,9 @@ class CPU6502 {
     return cycles;
   }
 
-  bmi () {
+  bmi (mode) {
     // Branch if Minus
-    this.logOperation(null, "BMI");
+    this.logOperation(mode, "BMI");
     var originalPC = this.PC;
     this.PC++;
     var cycles = 2;
