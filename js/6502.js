@@ -20,7 +20,7 @@ class CPU6502 {
 
     switch (mode) {
       case CPU6502.accumulator:
-        memoryString += ` TBD ACC `
+        memoryString += `\t${name} A\t`
         break;
       case CPU6502.immediate:
         memoryString += ` ${zeroPad(this.memory[this.PC + 1])} \t${name} #$${this.memory[ this.PC + 1 ].toString(16).toUpperCase()}`
@@ -110,7 +110,7 @@ class CPU6502 {
       case 0x31:
         return this.and(CPU6502.indirect_Y);
       case 0x0A:
-        return this.asl(CPU6502.immediate);
+        return this.asl(CPU6502.accumulator);
       case 0x06:
         return this.asl(CPU6502.zeroPage);
       case 0x16:
@@ -911,7 +911,7 @@ class CPU6502 {
   rti () {
     // Return from Interrupt
     this.logOperation(null, "RTI");
-    this.P = this.stackPop();
+    this.P = (this.stackPop() & 0b11101111 ) | 0b00100000;
     this.PC = this.stackPopPC();
     return 6;
   }
