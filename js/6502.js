@@ -1272,7 +1272,6 @@ class CPU6502 {
 
     var targetAddress = this.getAddress(mode);
     this.memory[targetAddress] = this.A;
-    console.log(`STA ${targetAddress}============================`);
     return cycles;
   }
 
@@ -1293,7 +1292,6 @@ class CPU6502 {
     }
 
     var targetAddress = this.getAddress(mode);
-    console.log(`STX ${targetAddress}===========================================`);
     this.memory[targetAddress] = this.X;
     return cycles;
   }
@@ -1316,7 +1314,6 @@ class CPU6502 {
 
     var targetAddress = this.getAddress(mode);
     this.memory[targetAddress] = this.Y;
-    console.log(`STY ${targetAddress}================================`);
     return cycles;
   }
 
