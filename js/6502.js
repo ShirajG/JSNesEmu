@@ -26,7 +26,7 @@ class CPU6502 {
         memoryString += ` ${zeroPad(this.memory[this.PC + 1])} \t${name} #$${this.memory[ this.PC + 1 ].toString(16).toUpperCase()}`
         break;
       case CPU6502.zeroPage:
-        memoryString += ` ${zeroPad(this.memory[this.PC + 1])} \t${name} $${this.memory[ this.PC + 1 ].toString(16).toUpperCase() } = ${this.X}`
+        memoryString += ` ${zeroPad(this.memory[this.PC + 1])} \t${name} $${this.memory[ this.PC + 1 ].toString(16).toUpperCase() } = ${zeroPad(this.memory[this.memory[this.PC + 1]])}`
         break;
       case CPU6502.zeroPageX:
         memoryString += ` TBD ZPX `
@@ -53,7 +53,8 @@ class CPU6502 {
         memoryString += ` TBD ID `
         break;
       case CPU6502.indirectX:
-        memoryString += ` TBD IDX `
+        let indirectAddress = zeroPad(this.memory[this.PC + 1]);
+        memoryString += ` ${indirectAddress} \t${name} ($${indirectAddress},X) @ ${indirectAddress} = ${this.memory[this.memory[this.PC + 2]]}`
         break;
       case CPU6502.indirect_Y:
         memoryString += ` TBD IDY `
@@ -1272,6 +1273,7 @@ class CPU6502 {
 
     var targetAddress = this.getAddress(mode);
     this.memory[targetAddress] = this.A;
+    console.log(`>>> Wrote ${zeroPad(this.A)} to ${targetAddress.toString(16)}`);
     return cycles;
   }
 
