@@ -53,8 +53,9 @@ class CPU6502 {
         memoryString += ` TBD ID `
         break;
       case CPU6502.indirectX:
-        let indirectAddress = zeroPad(this.memory[this.PC + 1]);
-        memoryString += ` ${indirectAddress} \t${name} ($${indirectAddress},X) @ ${indirectAddress} = ${this.read16Bits(this.memory[( this.PC + 1 ) + this.X]).toString(16)}`
+        const indirectAddress = this.memory[( this.PC + 1 ) + this.X];
+        const directAddress = this.read16Bits(this.read16Bits(indirectAddress));
+        memoryString += ` ${zeroPad(indirectAddress)} \t${name} ($${zeroPad(indirectAddress)},X) @ ${zeroPad(indirectAddress)} = ${ this.read16Bits(indirectAddress).toString(16)} = ${zeroPad(directAddress)}`
         break;
       case CPU6502.indirect_Y:
         memoryString += ` TBD IDY `
