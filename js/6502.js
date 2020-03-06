@@ -1358,7 +1358,7 @@ class CPU6502 {
       // In immediate mode, targetAddress is actually the data we want to test against
       this.A = targetAddress & this.A;
     } else {
-      this.A = cpu.memory[targetAddress] & this.A;
+      this.A = this.memory[targetAddress] & this.A;
     }
 
 
@@ -1485,7 +1485,7 @@ class CPU6502 {
     if (mode == CPU6502.immediate) {
       targetValue = targetAddress;
     } else {
-      targetValue = cpu.readMemory(targetAddress);
+      targetValue = this.readMemory(targetAddress);
     }
 
     // console.log("-------------------------------------------");
@@ -1542,7 +1542,7 @@ class CPU6502 {
     if (mode == CPU6502.immediate) {
       targetValue = targetAddress;
     } else {
-      targetValue = cpu.readMemory(targetAddress);
+      targetValue = this.readMemory(targetAddress);
     }
 
     if (this.X >= targetValue) {
@@ -1589,7 +1589,7 @@ class CPU6502 {
     if (mode == CPU6502.immediate) {
       targetValue = targetAddress;
     } else {
-      targetValue = cpu.readMemory(targetAddress);
+      targetValue = this.readMemory(targetAddress);
     }
 
     if (this.Y >= targetValue) {
@@ -1632,8 +1632,8 @@ class CPU6502 {
     }
 
     targetAddress = this.getAddress(mode);
-    cpu.memory[targetAddress] -= 1;
-    targetValue = cpu.readMemory(targetAddress);
+    this.memory[targetAddress] -= 1;
+    targetValue = this.readMemory(targetAddress);
 
     if (targetValue === 0) {
       this.setFlag(CPU6502.zero);
@@ -1670,8 +1670,8 @@ class CPU6502 {
     }
 
     targetAddress = this.getAddress(mode);
-    cpu.memory[targetAddress] += 1;
-    targetValue = cpu.readMemory(targetAddress);
+    this.memory[targetAddress] += 1;
+    targetValue = this.readMemory(targetAddress);
 
     if (targetValue === 0) {
       this.setFlag(CPU6502.zero);
