@@ -529,16 +529,16 @@ class CPU6502 {
         break;
       case CPU6502.indirectX:
         address = this.readMemory(this.PC);
-        address = (address + this.X) % 0x100;
+        address = (address + this.X) % 0x0100;
         address = this.read16Bits(address);
-        this.PC += 4;
+        this.PC += 1;
         break;
       case CPU6502.indirect_Y:
         address = this.read16Bits(this.readMemory(this.PC));
         // Overflow detection logic here, results in an extra cycle
         this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
         address = (address + this.Y) % 0x10000;
-        this.PC += 4;
+        this.PC += 1;
         break;
       default:
     }
@@ -1979,6 +1979,8 @@ class CPU6502 {
 
     if (mode === CPU6502.immediate) {
       targetValue = targetAddress;
+    } else if (mode === CPU6502.indirectX) {
+      targetValue = this.read16Bits(targetAddress);
     } else {
       targetValue = this.readMemory(targetAddress);
     }
