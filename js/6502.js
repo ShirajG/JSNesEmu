@@ -216,7 +216,7 @@ class CPU6502 {
       case 0xFE:
         return this.inc(CPU6502.absoluteX);
       case 0xE8:
-        return this.inx();
+        return this.inx(CPU6502.implied);
       case 0xC8:
         return this.iny(CPU6502.implied);
       case 0x4C:
@@ -818,9 +818,9 @@ class CPU6502 {
     return 2;
   }
 
-  inx () {
+  inx (mode) {
     // Increment X register
-    this.logOperation(null, "INX");
+    this.logOperation(mode, "INX");
     this.PC++;
     this.X++;
     if (this.X == 0) {
