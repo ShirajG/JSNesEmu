@@ -53,8 +53,9 @@ class CPU6502 {
         memoryString += ` TBD ID `
         break;
       case CPU6502.indirectX:
-        let indirectAddress = zeroPad(this.memory[this.PC + 1]);
-        memoryString += ` ${indirectAddress} \t${name} ($${indirectAddress},X) @ ${indirectAddress} = ${this.memory[this.memory[this.PC + 2]]}`
+        const indirectAddress = this.memory[( this.PC + 1 ) + this.X];
+        const directAddress = this.read16Bits(this.read16Bits(indirectAddress));
+        memoryString += ` ${zeroPad(indirectAddress)} \t${name} ($${zeroPad(indirectAddress)},X) @ ${zeroPad(indirectAddress)} = ${ this.read16Bits(indirectAddress).toString(16)} = ${zeroPad(directAddress)}`
         break;
       case CPU6502.indirect_Y:
         memoryString += ` TBD IDY `
@@ -215,7 +216,7 @@ class CPU6502 {
       case 0xFE:
         return this.inc(CPU6502.absoluteX);
       case 0xE8:
-        return this.inx();
+        return this.inx(CPU6502.implied);
       case 0xC8:
         return this.iny(CPU6502.implied);
       case 0x4C:
@@ -528,16 +529,16 @@ class CPU6502 {
         break;
       case CPU6502.indirectX:
         address = this.readMemory(this.PC);
-        address = (address + this.X) % 0x100;
+        address = (address + this.X) % 0x0100;
         address = this.read16Bits(address);
-        this.PC += 4;
+        this.PC += 1;
         break;
       case CPU6502.indirect_Y:
         address = this.read16Bits(this.readMemory(this.PC));
         // Overflow detection logic here, results in an extra cycle
         this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
         address = (address + this.Y) % 0x10000;
-        this.PC += 4;
+        this.PC += 1;
         break;
       default:
     }
@@ -817,9 +818,9 @@ class CPU6502 {
     return 2;
   }
 
-  inx () {
+  inx (mode) {
     // Increment X register
-    this.logOperation(null, "INX");
+    this.logOperation(mode, "INX");
     this.PC++;
     this.X++;
     if (this.X == 0) {
@@ -1357,7 +1358,7 @@ class CPU6502 {
       // In immediate mode, targetAddress is actually the data we want to test against
       this.A = targetAddress & this.A;
     } else {
-      this.A = cpu.memory[targetAddress] & this.A;
+      this.A = this.memory[targetAddress] & this.A;
     }
 
 
@@ -1484,7 +1485,7 @@ class CPU6502 {
     if (mode == CPU6502.immediate) {
       targetValue = targetAddress;
     } else {
-      targetValue = cpu.readMemory(targetAddress);
+      targetValue = this.readMemory(targetAddress);
     }
 
     // console.log("-------------------------------------------");
@@ -1541,7 +1542,7 @@ class CPU6502 {
     if (mode == CPU6502.immediate) {
       targetValue = targetAddress;
     } else {
-      targetValue = cpu.readMemory(targetAddress);
+      targetValue = this.readMemory(targetAddress);
     }
 
     if (this.X >= targetValue) {
@@ -1588,7 +1589,7 @@ class CPU6502 {
     if (mode == CPU6502.immediate) {
       targetValue = targetAddress;
     } else {
-      targetValue = cpu.readMemory(targetAddress);
+      targetValue = this.readMemory(targetAddress);
     }
 
     if (this.Y >= targetValue) {
@@ -1631,8 +1632,8 @@ class CPU6502 {
     }
 
     targetAddress = this.getAddress(mode);
-    cpu.memory[targetAddress] -= 1;
-    targetValue = cpu.readMemory(targetAddress);
+    this.memory[targetAddress] -= 1;
+    targetValue = this.readMemory(targetAddress);
 
     if (targetValue === 0) {
       this.setFlag(CPU6502.zero);
@@ -1669,8 +1670,8 @@ class CPU6502 {
     }
 
     targetAddress = this.getAddress(mode);
-    cpu.memory[targetAddress] += 1;
-    targetValue = cpu.readMemory(targetAddress);
+    this.memory[targetAddress] += 1;
+    targetValue = this.readMemory(targetAddress);
 
     if (targetValue === 0) {
       this.setFlag(CPU6502.zero);
@@ -1978,6 +1979,8 @@ class CPU6502 {
 
     if (mode === CPU6502.immediate) {
       targetValue = targetAddress;
+    } else if (mode === CPU6502.indirectX) {
+      targetValue = this.read16Bits(targetAddress);
     } else {
       targetValue = this.readMemory(targetAddress);
     }
