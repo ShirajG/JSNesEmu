@@ -18,13 +18,13 @@ The CPU has 6 'registers', which can be thought of as internal state that the CP
 	- X, Y: These registers are used as loop counters and as memory offsets in certain operations.
 
 ### Operations and Addressing Modes
-The CPU supports (56 different operations)[http://obelisk.me.uk/6502/reference.html], each of which can be called in different 'addressing modes'. Depending on the addressing mode, an operation will load its arguments from different places in memory, and cost a different amount of CPU cyles. A full list can be seen (here)[http://obelisk.me.uk/6502/addressing.html#IMM]. The `getAddress` method handles the logic of getting the right memory address passed to a function based on the addressing mode.
+The CPU supports [ 56 different operations ]( http://obelisk.me.uk/6502/reference.html ), each of which can be called in different 'addressing modes'. Depending on the addressing mode, an operation will load its arguments from different places in memory, and cost a different amount of CPU cyles. A full list can be seen (here)[http://obelisk.me.uk/6502/addressing.html#IMM]. The `getAddress` method handles the logic of getting the right memory address passed to a function based on the addressing mode.
 
 ### Testing
 There are 3 types of testing present for the CPU right now.
-- (Unit tests)[./js/test_ops.js] for each operation are present here. They test that each operation gives the correct result in each addressing mode that it can be called.
-- (Integration tests)[./js/test_nes.js] in the form of small programs written in 8-bit opcodes which test that a series of operations give the correct final result.
-- A full 3rd party testing suite that can be loaded into memory and run. This file is in binary, but a passing log is located (here)[./js/testLog.js], and logging is implemented in the CPU6502's `logOperation` method to match the format of the passing log. Any errors in the CPU implementation can be found by comparing the output from the known good log against the output from the `logOperation` method.
+- [Unit tests]( ./js/test_ops.js ) for each operation are present here. They test that each operation gives the correct result in each addressing mode that it can be called.
+- [Integration tests]( ./js/test_nes.js ) in the form of small programs written in 8-bit opcodes which test that a series of operations give the correct final result.
+- A full 3rd party testing suite that can be loaded into memory and run. This file is in binary, but a passing log is located [here]( ./js/testLog.js ), and logging is implemented in the CPU6502's `logOperation` method to match the format of the passing log. Any errors in the CPU implementation can be found by comparing the output from the known good log against the output from the `logOperation` method.
 
 ## Part 3: Picture Processing Unit
 TBD
