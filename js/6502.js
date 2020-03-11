@@ -530,10 +530,7 @@ class CPU6502 {
         break;
       case CPU6502.indirectX:
         address = this.readMemory(this.PC);
-        // TODO: Refactor this out as 'read16BitsWithWrap'
-        const addressLo = this.memory[(address + this.X) % 0x0100];
-        const addressHi = this.memory[((address + this.X) + 1) % 0x0100];
-        address = (addressHi << 8) | addressLo;
+        address = this.read16BitsWithWrap(address);
         this.PC += 1;
         break;
       case CPU6502.indirect_Y:
@@ -631,6 +628,12 @@ class CPU6502 {
     var loByte = this.memory[startingAt];
     var hiByte = this.memory[startingAt + 1];
     return ((hiByte << 8) | loByte);
+  }
+
+  read16BitsWithWrap(start) {
+    const addressLo = this.memory[(start + this.X) % 0x0100];
+    const addressHi = this.memory[((start + this.X) + 1) % 0x0100];
+    return (addressHi << 8) | addressLo;
   }
 
   write16Bits(startingAt, value) {
