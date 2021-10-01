@@ -34,6 +34,6 @@ TBD
 
 ## Resources
 - [NES Dev Wiki](https://wiki.nesdev.org/w/index.php?title=Programming_guide) An overview of what it takes to emulate the NES, full of helpful links to resources.
-- [http://obelisk.me.uk/6502/reference.html](http://obelisk.me.uk/6502/reference.html) Contains detailed info on all 6502 operations.
+- [This file](./6502.html) contains detailed info on all 6502 operations.
 - [6502 Programming Manual](http://users.telenet.be/kim1-6502/6502/proman.html) Official manual for the 6502. Contains lots of helpful explanations of how the CPU works, useful when you need more info about how to implement an operation.
 - [NES Dev Emulator Development Forum](http://forums.nesdev.com/viewforum.php?f=3) Lots of helpful posts here by other emulator developers. Useful to search through if you run up against a strange bug.
