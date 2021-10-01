@@ -34,7 +34,7 @@ TBD
 
 ## Resources
 - [NES Dev Wiki](https://wiki.nesdev.org/w/index.php?title=Programming_guide) An overview of what it takes to emulate the NES, full of helpful links to resources.
-- [This file](https://htmlpreview.github.io/?https://github.com/ShirajG/JSNesEmu/blob/master/6502.html) contains detailed info on all 6502 operations.
-- [This file](https://htmlpreview.github.io/?https://github.com/ShirajG/JSNesEmu/blob/master/6502_addressing.html) contains detailed info on 6502 addressing modes.
+- [This file](https://htmlpreview.github.io/?https://github.com/ShirajG/JSNesEmu/blob/master/docs/6502.html) contains detailed info on all 6502 operations.
+- [This file](https://htmlpreview.github.io/?https://github.com/ShirajG/JSNesEmu/blob/master/docs/6502_addressing.html) contains detailed info on 6502 addressing modes.
 - [6502 Programming Manual](http://users.telenet.be/kim1-6502/6502/proman.html) Official manual for the 6502. Contains lots of helpful explanations of how the CPU works, useful when you need more info about how to implement an operation.
 - [NES Dev Emulator Development Forum](http://forums.nesdev.com/viewforum.php?f=3) Lots of helpful posts here by other emulator developers. Useful to search through if you run up against a strange bug.
