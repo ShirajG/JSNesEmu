@@ -1,1 +1,1 @@
-LDA on Cycle 2585 is not correct
+Indirect JMP is the next place that emulation fails, Cycle 9615.
