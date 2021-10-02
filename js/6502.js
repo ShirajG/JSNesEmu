@@ -534,7 +534,7 @@ class CPU6502 {
         this.PC += 1;
         break;
       case CPU6502.indirect_Y:
-        address = this.read16Bits(this.readMemory(this.PC));
+        address = this.read16BitsIndirectY(this.readMemory(this.PC));
         // Overflow detection logic here, results in an extra cycle
         this.setPageCrossing(((address + this.Y) & 0xFF00) != (address & 0xFF00));
         address = (address + this.Y) % 0x10000;
@@ -633,6 +633,12 @@ class CPU6502 {
   read16BitsWithWrap(start) {
     const addressLo = this.memory[(start + this.X) % 0x0100];
     const addressHi = this.memory[((start + this.X) + 1) % 0x0100];
+    return (addressHi << 8) | addressLo;
+  }
+
+  read16BitsIndirectY(start) {
+    const addressLo = this.memory[(start)];
+    const addressHi = this.memory[((start) + 1) % 0x0100];
     return (addressHi << 8) | addressLo;
   }
 
@@ -1074,7 +1080,7 @@ class CPU6502 {
       this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
-        cycles += 2;
+        // cycles += 1;
       }
     } else {
       this.PC++;
@@ -1094,7 +1100,7 @@ class CPU6502 {
       this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
-        cycles += 2;
+        // cycles += 1;
       }
     } else {
       this.PC++;
@@ -1114,7 +1120,7 @@ class CPU6502 {
       this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
-        cycles += 2;
+        // cycles += 1;
       }
     } else {
       this.PC++;
@@ -1134,7 +1140,7 @@ class CPU6502 {
       this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
-        cycles += 2;
+        // cycles += 1;
       }
     } else {
       this.PC++;
@@ -1154,7 +1160,7 @@ class CPU6502 {
       this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
-        cycles += 2;
+        // cycles += 1;
       }
     } else {
       this.PC++;
@@ -1174,7 +1180,7 @@ class CPU6502 {
       this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
-        cycles += 2;
+        // cycles += 1;
       }
     } else {
       this.PC++;
@@ -1194,7 +1200,7 @@ class CPU6502 {
       this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
-        cycles += 2;
+        // cycles += 1;
       }
     } else {
       this.PC++;
@@ -1214,7 +1220,7 @@ class CPU6502 {
       this.PC++;
       this.PC += pcOffset;
       if((this.PC & 0xFF00 ) != (originalPC & 0xFF00)) {
-        cycles += 2;
+        // cycles += 1;
       }
     } else {
       this.PC++;
@@ -1991,6 +1997,7 @@ class CPU6502 {
       targetValue = this.readMemory(targetAddress);
     }
 
+
     this.A = targetValue;
 
     if (this.isNegative(this.A)) {
@@ -2348,4 +2355,3 @@ CPU6502.indirect = Symbol('Indirect Mode'); // only used by JMP
 CPU6502.indirectX = Symbol('Indirect X Mode');
 CPU6502.indirect_Y = Symbol('(Indirect), Y Mode');
 CPU6502.relative = Symbol('Relative Mode');
-
